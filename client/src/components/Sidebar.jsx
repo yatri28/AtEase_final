@@ -1,7 +1,8 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 export default function Sidebar({ role }) {
+  const navigate = useNavigate();
 
   const menus = {
     student: [
@@ -33,6 +34,13 @@ export default function Sidebar({ role }) {
     }
   }, []);
 
+  // ✅ Logout Function
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
+
   return (
     <aside className="w-64 min-h-screen bg-slate-900 text-white flex flex-col">
       
@@ -44,7 +52,7 @@ export default function Sidebar({ role }) {
         </p>
       </div>
 
-      {/* User */}
+      {/* User Info */}
       <div className="px-6 py-4 flex items-center gap-3">
         <div className="h-10 w-10 rounded-full bg-teal-500 flex items-center justify-center font-semibold">
           {user?.name?.charAt(0).toUpperCase() || "U"}
@@ -80,8 +88,19 @@ export default function Sidebar({ role }) {
         ))}
       </nav>
 
+      {/* Logout Button */}
+      <div className="px-4 mb-4">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-red-400 hover:bg-slate-800 transition"
+        >
+          <span>🚪</span>
+          Logout
+        </button>
+      </div>
+
       {/* Footer */}
-      <div className="p-4 text-xs text-teal-300">
+      <div className="p-4 text-xs text-teal-300 border-t border-slate-800">
         Crisis Helpline: <b>988</b>
       </div>
     </aside>

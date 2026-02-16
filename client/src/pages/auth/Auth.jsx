@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Auth() {
-  const [mode, setMode] = useState("login"); // login | signup
+  const [mode, setMode] = useState("login"); 
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
@@ -14,69 +14,73 @@ export default function Auth() {
 
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const url =
-      mode === "signup"
-        ? "http://localhost:5000/api/auth/signup"
-        : "http://localhost:5000/api/auth/login";
+  // 🔴 FIX 1: validate BEFORE API call
+  if (mode === "signup" && !form.name.trim()) {
+    alert("Name is required");
+    return;
+  }
 
-    // ✅ role is sent in BOTH signup and login
-    const payload =
-      mode === "signup"
-        ? form
-        : {
-            email: form.email,
-            password: form.password,
-            role: form.role,
-          };
+  setLoading(true);
 
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+  const url =
+    mode === "signup"
+      ? "http://localhost:5000/api/auth/signup"
+      : "http://localhost:5000/api/auth/login";
 
-      const data = await res.json();
+  const payload =
+    mode === "signup"
+      ? form
+      : {
+          email: form.email,
+          password: form.password,
+          role: form.role,
+        };
 
-      if (!res.ok) {
-        alert(data.message || "Something went wrong");
-        setLoading(false);
-        return;
-      }
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-      // ✅ LOGIN SUCCESS
-      if (mode === "login") {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+    const data = await res.json();
 
-        if (data.user.role === "student") navigate("/student");
-        if (data.user.role === "counselor") navigate("/counselor");
-        if (data.user.role === "admin") navigate("/admin");
-      }
-
-      // ✅ SIGNUP SUCCESS
-      if (mode === "signup") {
-        alert("Signup successful! Please login.");
-        setMode("login");
-        setForm({
-          name: "",
-          email: "",
-          password: "",
-          role: "student",
-        });
-      }
-    } catch (error) {
-      alert("Server error. Try again later.");
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      alert(data.message || "Something went wrong");
+      return;
     }
-  };
+
+    // ✅ LOGIN SUCCESS
+    if (mode === "login") {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      if (data.user.role === "student") navigate("/student");
+      if (data.user.role === "counselor") navigate("/counselor");
+      if (data.user.role === "admin") navigate("/admin");
+    }
+
+    // 🟢 FIX 2: SIGNUP SUCCESS FLOW
+    if (mode === "signup") {
+      alert("Signup successful! Please login.");
+      setMode("login");
+      setForm({
+        name: "",
+        email: "",
+        password: "",
+        role: "student",
+      });
+    }
+  } catch (error) {
+    alert("Server error. Try again later.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">

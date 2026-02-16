@@ -1,27 +1,14 @@
+// export default router;
 import express from "express";
-import Session from "../models/Session.js";
+import { bookSession, getStudentSessions } from "../controllers/session.controller.js";
 
 const router = express.Router();
 
-// Book session
-router.post("/book", async (req, res) => {
-  try {
-    const { studentId, counselorId, sessionDate, sessionTime } = req.body;
+// Middleware to verify logged-in user (make sure req.user exists)
+// session.routes.js
+import { protect as authMiddleware } from "../middleware/auth.js";
 
-    const session = await Session.create({
-      studentId,
-      counselorId,
-      sessionDate,
-      sessionTime,
-    });
-
-    res.status(201).json({
-      message: "Session request sent",
-      session,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
-});
+router.post("/book", authMiddleware, bookSession);
+router.get("/my-sessions", authMiddleware, getStudentSessions);
 
 export default router;

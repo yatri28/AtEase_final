@@ -70,10 +70,10 @@ export const login = async (req, res) => {
     res.json({
       token,
       user: {
-        id: user._id,   // ✅ needed for session booking
-        name: user.name,
-        role: user.role,
-      },
+  _id: user._id,   // ✅ FIX
+  name: user.name,
+  role: user.role,
+},
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
