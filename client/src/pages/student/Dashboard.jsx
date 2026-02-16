@@ -33,6 +33,9 @@ export default function StudentDashboard() {
   const [noteText, setNoteText] = useState("");
   const [showNoteBox, setShowNoteBox] = useState(false);
   const [showAllNotes, setShowAllNotes] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState(null);
+  const [editingText, setEditingText] = useState("");
+
 
   const [monthlyMoods, setMonthlyMoods] = useState([]);
   const [todayMoodId, setTodayMoodId] = useState(null);
@@ -163,6 +166,46 @@ export default function StudentDashboard() {
     setNoteText("");
     setShowNoteBox(false);
   };
+
+
+
+  const handleEditNote = async (noteId) => {
+  if (!editingText.trim()) return;
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/notes/${noteId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ text: editingText }),
+    });
+    const updatedNote = await res.json();
+    setNotes((prev) =>
+      prev.map((note) => (note._id === noteId ? updatedNote : note))
+    );
+    setEditingNoteId(null);
+    setEditingText("");
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+
+
+const handleDeleteNote = async (noteId) => {
+  try {
+    await fetch(`http://localhost:5000/api/notes/${noteId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setNotes((prev) => prev.filter((note) => note._id !== noteId));
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 
   /* ================= UI ================= */
   return (
@@ -307,20 +350,66 @@ export default function StudentDashboard() {
         <div className="bg-white p-6 rounded-2xl shadow-sm mt-6">
           <h2 className="font-semibold mb-3">📝 Your Notes</h2>
 
-          {(showAllNotes ? notes : notes.slice(0, 2)).map((note) => (
-            <div key={note._id} className="border-b py-2">
-              • {note.text}
-            </div>
-          ))}
+          
 
-          {notes.length > 2 && (
-            <button
-              onClick={() => setShowAllNotes(!showAllNotes)}
-              className="mt-3 text-teal-500 text-sm"
-            >
-              {showAllNotes ? "Show less" : "View all notes"}
-            </button>
-          )}
+        {(showAllNotes ? notes : notes.slice(0, 2)).map((note) => (
+       <div key={note._id} className="border-b py-2 flex justify-between items-center">
+    {editingNoteId === note._id ? (
+      <>
+        <input
+          value={editingText}
+          onChange={(e) => setEditingText(e.target.value)}
+          className="border rounded-lg p-1 w-full mr-2"
+        />
+        <button
+          onClick={() => handleEditNote(note._id)}
+          className="text-teal-500 text-sm mr-2"
+        >
+          Save
+        </button>
+        <button
+          onClick={() => setEditingNoteId(null)}
+          className="text-red-500 text-sm"
+        >
+          Cancel
+        </button>
+      </>
+    ) : (
+      <>
+        <span>• {note.text}</span>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              setEditingNoteId(note._id);
+              setEditingText(note.text);
+            }}
+            className="text-blue-500 text-sm"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDeleteNote(note._id)}
+            className="text-red-500 text-sm"
+          >
+            Delete
+          </button>
+        </div>
+        
+      </>
+    )}
+    
+  </div>
+))}
+    {notes.length > 2 && (
+      <button
+        onClick={() => setShowAllNotes(!showAllNotes)}
+        className="mt-3 text-teal-500 text-sm"
+      >
+        {showAllNotes ? "Show less" : "View all notes"}
+      </button>
+    )}
+
+
         </div>
       )}
     </DashboardLayout>

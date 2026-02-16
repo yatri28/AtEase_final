@@ -31,4 +31,34 @@ router.get("/:studentId", async (req, res) => {
   }
 });
 
+// EDIT NOTE
+router.put("/:noteId", async (req, res) => {
+  try {
+    const { text } = req.body;
+    const updatedNote = await Note.findByIdAndUpdate(
+      req.params.noteId,
+      { text },
+      { new: true } // return updated document
+    );
+    if (!updatedNote) return res.status(404).json({ message: "Note not found" });
+    res.json(updatedNote);
+  } catch (error) {
+    console.log("UPDATE NOTE ERROR:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// DELETE NOTE
+router.delete("/:noteId", async (req, res) => {
+  try {
+    const deletedNote = await Note.findByIdAndDelete(req.params.noteId);
+    if (!deletedNote) return res.status(404).json({ message: "Note not found" });
+    res.json({ message: "Note deleted successfully" });
+  } catch (error) {
+    console.log("DELETE NOTE ERROR:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 export default router;
