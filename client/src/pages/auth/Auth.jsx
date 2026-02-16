@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Auth() {
-  const [mode, setMode] = useState("login"); 
+  const [mode, setMode] = useState("login");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -14,73 +15,84 @@ export default function Auth() {
 
   const navigate = useNavigate();
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
-  // 🔴 FIX 1: validate BEFORE API call
-  if (mode === "signup" && !form.name.trim()) {
-    alert("Name is required");
-    return;
-  }
-
-  setLoading(true);
-
-  const url =
-    mode === "signup"
-      ? "http://localhost:5000/api/auth/signup"
-      : "http://localhost:5000/api/auth/login";
-
-  const payload =
-    mode === "signup"
-      ? form
-      : {
-          email: form.email,
-          password: form.password,
-          role: form.role,
-        };
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.message || "Something went wrong");
+    // ✅ Name validation (signup only)
+    if (mode === "signup" && !form.name.trim()) {
+      setError("Name is required.");
       return;
     }
 
-    // ✅ LOGIN SUCCESS
-    if (mode === "login") {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+    // ✅ Password validation
+    const passwordRegex =
+      /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
 
-      if (data.user.role === "student") navigate("/student");
-      if (data.user.role === "counselor") navigate("/counselor");
-      if (data.user.role === "admin") navigate("/admin");
+    if (!passwordRegex.test(form.password)) {
+      setError(
+        "Password must be at least 8 characters, include 1 uppercase letter and 1 special character."
+      );
+      return;
     }
 
-    // 🟢 FIX 2: SIGNUP SUCCESS FLOW
-    if (mode === "signup") {
-      alert("Signup successful! Please login.");
-      setMode("login");
-      setForm({
-        name: "",
-        email: "",
-        password: "",
-        role: "student",
+    setLoading(true);
+
+    const url =
+      mode === "signup"
+        ? "http://localhost:5000/api/auth/signup"
+        : "http://localhost:5000/api/auth/login";
+
+    const payload =
+      mode === "signup"
+        ? form
+        : {
+            email: form.email,
+            password: form.password,
+            role: form.role,
+          };
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
-    }
-  } catch (error) {
-    alert("Server error. Try again later.");
-  } finally {
-    setLoading(false);
-  }
-};
 
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Something went wrong.");
+        return;
+      }
+
+      // ✅ LOGIN SUCCESS
+      if (mode === "login") {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        if (data.user.role === "student") navigate("/student");
+        if (data.user.role === "counselor") navigate("/counselor");
+        if (data.user.role === "admin") navigate("/admin");
+      }
+
+      // ✅ SIGNUP SUCCESS
+      if (mode === "signup") {
+        alert("Signup successful! Please login.");
+        setMode("login");
+        setForm({
+          name: "",
+          email: "",
+          password: "",
+          role: "student",
+        });
+      }
+    } catch (err) {
+      setError("Server error. Try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -118,6 +130,13 @@ export default function Auth() {
 
         {/* Form */}
         <form className="space-y-4" onSubmit={handleSubmit}>
+          {/* Error Message */}
+          {error && (
+            <div className="text-red-500 text-sm bg-red-50 p-2 rounded-lg">
+              {error}
+            </div>
+          )}
+
           {/* Name (signup only) */}
           {mode === "signup" && (
             <input
@@ -156,7 +175,7 @@ export default function Auth() {
             required
           />
 
-          {/* ✅ ROLE DROPDOWN (LOGIN + SIGNUP) */}
+          {/* Role */}
           <select
             className="w-full px-4 py-2 border rounded-lg"
             value={form.role}
