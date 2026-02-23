@@ -14,10 +14,28 @@ router.post("/", async (req, res) => {
   });
 
   await newMessage.save();
-  res.json({ message: "Message sent" });
+  res.json(newMessage); // return saved message
 });
 
-// Get messages between student and counselor
+// Get ALL messages of logged-in student
+router.get("/student/:studentId", async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const messages = await Message.find({
+      $or: [
+        { senderId: studentId },
+        { receiverId: studentId }
+      ],
+    }).sort({ createdAt: -1 });
+
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Get conversation between student & counselor
 router.get("/:studentId/:counselorId", async (req, res) => {
   const { studentId, counselorId } = req.params;
 
