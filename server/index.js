@@ -7,6 +7,11 @@ import sessionRoutes from "./routes/session.routes.js";  // 👈 add this
 import noteRoutes from "./routes/noteRoutes.js";
 import counselorRoutes from "./routes/counselor.routes.js";
 import moodRoutes from "./routes/moodRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
+
+
+import analyticsRoutes from "./routes/analyticsRoutes.js";
+
 
 dotenv.config();
 connectDB();
@@ -21,6 +26,8 @@ app.use("/api/sessions", sessionRoutes);  // 👈 add this
 app.use("/api/counselors", counselorRoutes);
 app.use("/api/notes",noteRoutes);
 app.use("/api/moods", moodRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 
 const PORT = process.env.PORT || 5000;

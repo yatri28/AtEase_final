@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // ✅ ADD THIS
+import { useNavigate } from "react-router-dom";
 
 
 import {
@@ -14,10 +14,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-
-
 export default function StudentDashboard() {
-  const navigate = useNavigate(); // ✅ ADD THIS
+  const navigate = useNavigate();
 
   const loggedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const studentId = loggedUser?._id;
@@ -35,7 +33,6 @@ export default function StudentDashboard() {
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingText, setEditingText] = useState("");
-
 
   const [monthlyMoods, setMonthlyMoods] = useState([]);
   const [todayMoodId, setTodayMoodId] = useState(null);
@@ -108,6 +105,25 @@ export default function StudentDashboard() {
     }
   };
 
+  /* ---------------- CALCULATE STREAK ---------------- */
+  const calculateStreak = () => {
+    if (monthlyMoods.length === 0) return 0;
+    const todayIndex = new Date().getDate() - 1;
+    let streak = 0;
+
+    for (let i = todayIndex; i >= 0; i--) {
+      if (monthlyMoods[i].mood !== null) {
+        streak++;
+      } else if (i === todayIndex) {
+        // If today isn't entered yet, don't break, check yesterday
+        continue;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  };
+
   /* ---------------- MOOD ACTIONS ---------------- */
   const handleMoodClick = async (mood) => {
     try {
@@ -167,45 +183,40 @@ export default function StudentDashboard() {
     setShowNoteBox(false);
   };
 
-
-
   const handleEditNote = async (noteId) => {
-  if (!editingText.trim()) return;
+    if (!editingText.trim()) return;
 
-  try {
-    const res = await fetch(`http://localhost:5000/api/notes/${noteId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ text: editingText }),
-    });
-    const updatedNote = await res.json();
-    setNotes((prev) =>
-      prev.map((note) => (note._id === noteId ? updatedNote : note))
-    );
-    setEditingNoteId(null);
-    setEditingText("");
-  } catch (err) {
-    console.log(err);
-  }
-};
+    try {
+      const res = await fetch(`http://localhost:5000/api/notes/${noteId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text: editingText }),
+      });
+      const updatedNote = await res.json();
+      setNotes((prev) =>
+        prev.map((note) => (note._id === noteId ? updatedNote : note))
+      );
+      setEditingNoteId(null);
+      setEditingText("");
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-
-
-const handleDeleteNote = async (noteId) => {
-  try {
-    await fetch(`http://localhost:5000/api/notes/${noteId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setNotes((prev) => prev.filter((note) => note._id !== noteId));
-  } catch (err) {
-    console.log(err);
-  }
-};
-
+  const handleDeleteNote = async (noteId) => {
+    try {
+      await fetch(`http://localhost:5000/api/notes/${noteId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotes((prev) => prev.filter((note) => note._id !== noteId));
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   /* ================= UI ================= */
   return (
@@ -226,8 +237,8 @@ const handleDeleteNote = async (noteId) => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <StatCard title="Next Session" value="Not Scheduled" icon="📅" color="bg-teal-100" />
         <StatCard title="Sessions Attended" value="0" icon="⏰" color="bg-purple-100" />
-        <StatCard title="Mood Streak" value="0 days" icon="📈" color="bg-yellow-100" />
-        <StatCard title="Notes Sent" value={notes.length} icon="💬" color="bg-blue-100" />
+        <StatCard title="Mood Streak" value={`${calculateStreak()} Days`} icon="📈" color="bg-yellow-100" />
+        <StatCard title="Notes" value={notes.length} icon="💬" color="bg-blue-100" />
       </div>
 
       {/* MOOD TRACKER */}
@@ -283,23 +294,21 @@ const handleDeleteNote = async (noteId) => {
           <p className="text-gray-500 text-sm">
             You don’t have any sessions scheduled.
           </p>
-         <button
-  onClick={() => navigate("/student/book")}
-  className="mt-4 px-5 py-2 bg-teal-500 text-white rounded-lg"
->
-  Book a Session
-</button>
-
+          <button
+            onClick={() => navigate("/student/book")}
+            className="mt-4 px-5 py-2 bg-teal-500 text-white rounded-lg"
+          >
+            Book a Session
+          </button>
         </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-sm">
+        <div className="bg-white p-6 rounded-2xl shadow-sm">
           <h2 className="font-semibold mb-3">Quick Actions</h2>
-
           <div className="space-y-3">
-<ActionButton
-  text="📅 Book a Session"
-  onClick={() => navigate("/student/book")}
-/>
+            <ActionButton
+              text="📅 Book a Session"
+              onClick={() => navigate("/student/book")}
+            />
             <ActionButton text="💬 Message Counselor" />
             <ActionButton
               text="📝 Write a Note"
@@ -310,10 +319,9 @@ const handleDeleteNote = async (noteId) => {
       </div>
 
       {/* NOTES */}
-     {showNoteBox && (
+      {showNoteBox && (
         <div className="bg-white p-6 rounded-2xl shadow-sm mt-6">
           <h2 className="font-semibold mb-2">Write a Note</h2>
-
           <textarea
             rows="4"
             className="w-full border rounded-lg p-3"
@@ -321,7 +329,6 @@ const handleDeleteNote = async (noteId) => {
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
           />
-
           <div className="flex gap-3 mt-4">
             <button
               onClick={handleSubmitNote}
@@ -334,7 +341,6 @@ const handleDeleteNote = async (noteId) => {
             >
               Submit
             </button>
-
             <button
               onClick={() => setShowNoteBox(false)}
               className="px-5 py-2 border rounded-lg"
@@ -349,72 +355,66 @@ const handleDeleteNote = async (noteId) => {
       {notes.length > 0 && (
         <div className="bg-white p-6 rounded-2xl shadow-sm mt-6">
           <h2 className="font-semibold mb-3">📝 Your Notes</h2>
-
-          
-
-        {(showAllNotes ? notes : notes.slice(0, 2)).map((note) => (
-       <div key={note._id} className="border-b py-2 flex justify-between items-center">
-    {editingNoteId === note._id ? (
-      <>
-        <input
-          value={editingText}
-          onChange={(e) => setEditingText(e.target.value)}
-          className="border rounded-lg p-1 w-full mr-2"
-        />
-        <button
-          onClick={() => handleEditNote(note._id)}
-          className="text-teal-500 text-sm mr-2"
-        >
-          Save
-        </button>
-        <button
-          onClick={() => setEditingNoteId(null)}
-          className="text-red-500 text-sm"
-        >
-          Cancel
-        </button>
-      </>
-    ) : (
-      <>
-        <span>• {note.text}</span>
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              setEditingNoteId(note._id);
-              setEditingText(note.text);
-            }}
-            className="text-blue-500 text-sm"
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => handleDeleteNote(note._id)}
-            className="text-red-500 text-sm"
-          >
-            Delete
-          </button>
-        </div>
-        
-      </>
-    )}
-    
-  </div>
-))}
-    {notes.length > 2 && (
-      <button
-        onClick={() => setShowAllNotes(!showAllNotes)}
-        className="mt-3 text-teal-500 text-sm"
-      >
-        {showAllNotes ? "Show less" : "View all notes"}
-      </button>
-    )}
-
-
+          {(showAllNotes ? notes : notes.slice(0, 2)).map((note) => (
+            <div key={note._id} className="border-b py-2 flex justify-between items-center">
+              {editingNoteId === note._id ? (
+                <>
+                  <input
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    className="border rounded-lg p-1 w-full mr-2"
+                  />
+                  <button
+                    onClick={() => handleEditNote(note._id)}
+                    className="text-teal-500 text-sm mr-2"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditingNoteId(null)}
+                    className="text-red-500 text-sm"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span>• {note.text}</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingNoteId(note._id);
+                        setEditingText(note.text);
+                      }}
+                      className="text-blue-500 text-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteNote(note._id)}
+                      className="text-red-500 text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+          {notes.length > 2 && (
+            <button
+              onClick={() => setShowAllNotes(!showAllNotes)}
+              className="mt-3 text-teal-500 text-sm"
+            >
+              {showAllNotes ? "Show less" : "View all notes"}
+            </button>
+          )}
         </div>
       )}
     </DashboardLayout>
   );
 }
+
 /* ---------------- COMPONENTS ---------------- */
 function StatCard({ title, value, icon, color }) {
   return (
@@ -432,7 +432,7 @@ function StatCard({ title, value, icon, color }) {
 
 function ActionButton({ text, onClick }) {
   return (
-    <button onClick={onClick} className="w-full border rounded-lg px-4 py-3">
+    <button onClick={onClick} className="w-full border rounded-lg px-4 py-3 text-left">
       {text}
     </button>
   );

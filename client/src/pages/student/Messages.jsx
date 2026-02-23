@@ -1,35 +1,60 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
 import DashboardLayout from "../../layouts/DashboardLayout";
 
 export default function Messages() {
-  const messages = [
-    {
-      from: "Dr. Sarah Mitchell",
-      title: "Session Reminder",
-      preview: "Just a reminder that we have our session scheduled for tomorrow at 2 PM.",
-      time: "2 hours ago",
-      unread: true,
-    },
-    {
-      from: "Wellness Center",
-      title: "Mindfulness Workshop This Friday",
-      preview: "Join us for a guided mindfulness session this Friday at 4 PM.",
-      time: "1 day ago",
-      unread: true,
-    },
-    {
-      from: "Dr. James Chen",
-      title: "Resources Shared",
-      preview: "Here are some resources we discussed about managing academic stress.",
-      time: "3 days ago",
-      unread: false,
-    },
-  ];
+  const [messages, setMessages] = useState([]);
+  const [counselors, setCounselors] = useState([]);
+  const [selectedCounselor, setSelectedCounselor] = useState(null);
+  const [messageText, setMessageText] = useState("");
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  useEffect(() => {
+    fetchMessages();
+    fetchCounselors();
+  }, []);
+
+  const fetchMessages = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/api/messages"
+      );
+      setMessages(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const fetchCounselors = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/api/counselors"
+      );
+      setCounselors(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!selectedCounselor || !messageText) return;
+
+    await axios.post("http://localhost:5000/api/messages", {
+      senderId: user._id,
+      receiverId: selectedCounselor._id,
+      content: messageText,
+    });
+
+    setMessageText("");
+    fetchMessages();
+  };
 
   return (
     <DashboardLayout role="student">
       <h1 className="text-2xl font-bold mb-1">Messages</h1>
       <p className="text-gray-500 mb-6">
-        Stay connected with your counselor and wellness center
+        Stay connected with your counselor
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -41,54 +66,71 @@ export default function Messages() {
           </div>
 
           <div>
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`p-5 border-b cursor-pointer hover:bg-gray-50 transition ${
-                  msg.unread ? "bg-teal-50" : ""
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <p className="font-medium">{msg.from}</p>
-                  <span className="text-xs text-gray-400">{msg.time}</span>
+            {messages.length === 0 ? (
+              <p className="p-5 text-gray-500 text-sm">
+                No messages yet.
+              </p>
+            ) : (
+              messages.map((msg) => (
+                <div
+                  key={msg._id}
+                  className="p-5 border-b hover:bg-gray-50"
+                >
+                  <div className="flex justify-between">
+                    <p className="font-medium">
+                      {msg.content}
+                    </p>
+                    <span className="text-xs text-gray-400">
+                      {new Date(msg.createdAt).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
-
-                <p className="text-sm font-medium">{msg.title}</p>
-                <p className="text-sm text-gray-500 truncate">
-                  {msg.preview}
-                </p>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
         {/* Right Panel */}
-        <div className="space-y-6">
-          
-          {/* Quick Actions */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm">
-            <h2 className="font-semibold mb-4">Quick Actions</h2>
+        <div className="bg-white p-6 rounded-2xl shadow-sm">
+          <h2 className="font-semibold mb-4">
+            Available Counselors
+          </h2>
 
-            <button className="w-full bg-teal-500 text-white py-2 rounded-lg font-medium hover:bg-teal-600 mb-3">
-              Message Counselor
-            </button>
+          {counselors.map((c) => (
+            <div key={c._id} className="mb-4 border-b pb-2">
+              <p className="font-medium">{c.name}</p>
+              <p className="text-sm text-gray-500">
+                {c.specialization}
+              </p>
 
-            <button className="w-full border py-2 rounded-lg hover:bg-gray-50">
-              View Resources
-            </button>
-          </div>
+              <button
+                onClick={() => setSelectedCounselor(c)}
+                className="mt-2 bg-teal-500 text-white px-3 py-1 rounded"
+              >
+                Select
+              </button>
+            </div>
+          ))}
 
-          {/* Counselor Info */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm">
-            <h2 className="font-semibold mb-2">Your Counselor</h2>
-            <p className="font-medium">Dr. Sarah Mitchell</p>
-            <p className="text-sm text-gray-500">
-              Anxiety & Stress Specialist
-            </p>
-            <p className="text-xs text-gray-400 mt-2">
-              Available Mon–Fri, 9 AM – 5 PM
-            </p>
-          </div>
+          {selectedCounselor && (
+            <div className="mt-4">
+              <textarea
+                className="w-full border p-2 rounded"
+                placeholder="Type your message..."
+                value={messageText}
+                onChange={(e) =>
+                  setMessageText(e.target.value)
+                }
+              />
+
+              <button
+                onClick={sendMessage}
+                className="w-full bg-teal-500 text-white py-2 rounded mt-2"
+              >
+                Send
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

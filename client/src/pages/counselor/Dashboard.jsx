@@ -1,152 +1,120 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Label
+} from "recharts";
 import DashboardLayout from "../../layouts/DashboardLayout";
 
 export default function CounselorDashboard() {
-  const [notes, setNotes] = useState([]);
-  const [sessionRequests, setSessionRequests] = useState([]);
-  const [moodEntries, setMoodEntries] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const token = localStorage.getItem("token");
+  const [data, setData] = useState([]);
+  const [overall, setOverall] = useState(0);
+  const [risk, setRisk] = useState("");
+  const [insight, setInsight] = useState("");
+  const [monthName, setMonthName] = useState("");
 
   useEffect(() => {
-    fetchData();
+    fetchAnalytics();
   }, []);
 
-  const fetchData = async () => {
+  const fetchAnalytics = async () => {
     try {
-      setLoading(true);
+      const date = new Date();
+      const month = date.getMonth();
+      const year = date.getFullYear();
 
-      const notesRes = await fetch("http://localhost:5000/api/notes", {
-        headers: { Authorization: `Bearer ${token}` },
+      const monthString = date.toLocaleString("default", {
+        month: "long",
+        year: "numeric"
       });
-      const notesData = await notesRes.json();
-      setNotes(notesData || []);
 
-      const sessionsRes = await fetch(
-        "http://localhost:5000/api/sessions",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      setMonthName(monthString);
+
+      const res = await axios.get(
+        `http://localhost:5000/api/analytics/all-students?month=${month}&year=${year}`
       );
-      const sessionsData = await sessionsRes.json();
-      setSessionRequests(sessionsData || []);
 
-      const moodsRes = await fetch("http://localhost:5000/api/moods", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const moodsData = await moodsRes.json();
-      setMoodEntries(moodsData || []);
+      setData(res.data.dailyData);
+      setOverall(res.data.overallAverage);
+      setRisk(res.data.riskLevel);
+      setInsight(res.data.insight);
+
     } catch (err) {
-      console.error("Error fetching counselor data");
-    } finally {
-      setLoading(false);
+      console.log(err);
     }
   };
 
-  const handleApproveRequest = async (id) => {
-    await fetch(`http://localhost:5000/api/sessions/${id}/approve`, {
-      method: "PUT",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchData();
-  };
-
-  const handleRejectRequest = async (id) => {
-    await fetch(`http://localhost:5000/api/sessions/${id}/reject`, {
-      method: "PUT",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchData();
-  };
-
-  const pendingRequests = sessionRequests.filter(
-    (r) => r.status === "pending"
-  );
-
   return (
     <DashboardLayout role="counselor">
-      <h1 className="text-2xl font-bold mb-6">
-        Counselor Dashboard
+      <h1 className="text-2xl font-bold mb-1">
+        Campus Mood Overview — {monthName}
       </h1>
+      <p className="text-gray-500 mb-6">
+        Daily average emotional trend of all students
+      </p>
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <>
-          {/* Pending Sessions */}
-          <div className="mb-8">
-            <h2 className="font-semibold mb-3">
-              Pending Session Requests ({pendingRequests.length})
-            </h2>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-3 gap-6 mb-6">
+        <div className="bg-white p-5 rounded-xl shadow">
+          <p className="text-gray-500">Overall Monthly Average</p>
+          <h2 className="text-3xl font-bold">{overall} / 5</h2>
+        </div>
 
-            {pendingRequests.length === 0 ? (
-              <p className="text-gray-500">
-                No pending requests.
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {pendingRequests.map((req) => (
-                  <div
-                    key={req._id}
-                    className="p-4 border rounded-xl bg-white shadow-sm"
-                  >
-                    <p className="font-medium">
-                      Student ID: {req.studentId}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(req.sessionDate).toLocaleDateString()} at{" "}
-                      {req.sessionTime}
-                    </p>
+        <div className="bg-white p-5 rounded-xl shadow">
+          <p className="text-gray-500">Risk Level</p>
+          <h2 className="text-xl font-bold">{risk}</h2>
+        </div>
 
-                    <div className="flex gap-2 mt-3">
-                      <button
-                        onClick={() => handleApproveRequest(req._id)}
-                        className="px-3 py-1 bg-green-500 text-white rounded-lg text-sm"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleRejectRequest(req._id)}
-                        className="px-3 py-1 bg-red-500 text-white rounded-lg text-sm"
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="bg-white p-5 rounded-xl shadow">
+          <p className="text-gray-500">System Insight</p>
+          <p className="text-sm mt-2">{insight}</p>
+        </div>
+      </div>
 
-          {/* Mood Entries */}
-          <div>
-            <h2 className="font-semibold mb-3">
-              Recent Mood Entries
-            </h2>
+      {/* Chart */}
+      <div className="bg-white p-6 rounded-2xl shadow">
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
 
-            {moodEntries.length === 0 ? (
-              <p className="text-gray-500">
-                No mood entries recorded.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {moodEntries.slice(0, 10).map((entry) => (
-                  <div
-                    key={entry._id}
-                    className="p-3 bg-gray-50 rounded-lg flex justify-between"
-                  >
-                    <span>{entry.mood}</span>
-                    <span className="text-xs text-gray-400">
-                      {new Date(entry.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      )}
+            <XAxis dataKey="day">
+              <Label
+                value="Day of Month"
+                offset={-5}
+                position="insideBottom"
+              />
+            </XAxis>
+
+            <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]}>
+              <Label
+                value="Average Mood Score (1–5)"
+                angle={-90}
+                position="insideLeft"
+              />
+            </YAxis>
+
+            <Tooltip
+              formatter={(value) => [`${value} / 5`, "Average Mood"]}
+              labelFormatter={(label) => `Day ${label}`}
+            />
+
+            <Line
+              type="monotone"
+              dataKey="averageMood"
+              stroke="#14b8a6"
+              strokeWidth={3}
+              dot={{ r: 4 }}
+              activeDot={{ r: 6 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </DashboardLayout>
   );
 }
