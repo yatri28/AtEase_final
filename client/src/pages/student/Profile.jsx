@@ -57,20 +57,20 @@ export default function Profile() {
   return (
     <DashboardLayout role={user.role}>
       <h1 className="text-2xl font-bold mb-1">Profile</h1>
-      <p className="text-gray-500 mb-6">
+      <p className="text-gray-500 dark:text-gray-400 mb-6">
         View and manage your personal information
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Profile Card */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center text-center">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 flex flex-col items-center text-center">
           <div className="h-20 w-20 rounded-full bg-teal-500 flex items-center justify-center text-white text-3xl font-semibold">
             {user.name?.[0]}
           </div>
 
           <h2 className="mt-4 text-xl font-semibold">{user.name}</h2>
-          <p className="text-gray-500 text-sm">{user.email}</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">{user.email}</p>
 
           <span className="mt-3 inline-block bg-teal-100 text-teal-700 text-xs px-3 py-1 rounded-full">
             {user.role}
@@ -87,10 +87,10 @@ export default function Profile() {
         </div>
 
         {/* Details */}
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
           <h2 className="font-semibold mb-4">Personal Details</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white dark:bg-gray-800 rounded-2xl text-gray-500 dark:text-gray-400">
             <EditableField label="Full Name" name="name" value={user.name} editMode={editMode} onChange={handleChange}/>
             <EditableField label="Email" name="email" value={user.email} editMode={editMode} onChange={handleChange}/>
             <EditableField label="Academic Year" name="year" value={user.year} editMode={editMode} onChange={handleChange}/>
@@ -123,7 +123,7 @@ export default function Profile() {
 function EditableField({ label, name, value, editMode, onChange }) {
   return (
     <div>
-      <p className="text-sm text-gray-500">{label}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
       {editMode ? (
         <input
           type="text"

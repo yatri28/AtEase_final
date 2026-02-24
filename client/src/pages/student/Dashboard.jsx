@@ -41,7 +41,7 @@ export default function StudentDashboard() {
   const moods = [
     { emoji: "😊", label: "Happy", value: 5 },
     { emoji: "😌", label: "Calm", value: 4 },
-    { emoji: "😐", label: "Neutral", value: 3 },
+    { emoji: "😐", label: "Normal", value: 3 },
     { emoji: "😢", label: "Sad", value: 2 },
     { emoji: "😰", label: "Stressed", value: 1 },
   ];
@@ -229,7 +229,7 @@ export default function StudentDashboard() {
         Hello, {loggedUser?.name} 👋
       </h1>
 
-      <p className="text-gray-500 mb-6">
+      <p className="text-gray-500 dark:text-gray-400 mb-6">
         Here’s a quick look at your wellness journey
       </p>
 
@@ -242,17 +242,17 @@ export default function StudentDashboard() {
       </div>
 
       {/* MOOD TRACKER */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-        <h2 className="font-semibold mb-2">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm mb-6">
+        <h2 className="font-semibold mb-2 ">
           How are you feeling this {dayName}?
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 bg-white dark:bg-gray-800">
           {moods.map((mood) => (
             <button
               key={mood.label}
               onClick={() => handleMoodClick(mood)}
-              className={`py-5 flex flex-col items-center gap-1 rounded-2xl ${
+              className={ `bg-white dark:bg-gray-800 py-5 flex flex-col items-center gap-1 rounded-2xl ${
                 selectedMood === mood.label
                   ? "bg-teal-100 ring-2 ring-teal-400"
                   : "bg-gray-50 hover:bg-teal-50"
@@ -275,7 +275,7 @@ export default function StudentDashboard() {
       </div>
 
       {/* CHART */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm mb-6">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm mb-6">
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={monthlyMoods}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -289,9 +289,9 @@ export default function StudentDashboard() {
 
       {/* BOTTOM SECTION */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
           <h2 className="font-semibold mb-2">Upcoming Session</h2>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             You don’t have any sessions scheduled.
           </p>
           <button
@@ -302,7 +302,7 @@ export default function StudentDashboard() {
           </button>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
           <h2 className="font-semibold mb-3">Quick Actions</h2>
           <div className="space-y-3">
             <ActionButton
@@ -320,11 +320,11 @@ export default function StudentDashboard() {
 
       {/* NOTES */}
       {showNoteBox && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm mt-6">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm mt-6">
           <h2 className="font-semibold mb-2">Write a Note</h2>
           <textarea
             rows="4"
-            className="w-full border rounded-lg p-3"
+            className="w-full border rounded-lg p-3 bg-white dark:bg-gray-800"
             placeholder="Write your thoughts here..."
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
@@ -353,7 +353,7 @@ export default function StudentDashboard() {
 
       {/* Notes List */}
       {notes.length > 0 && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm mt-6">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm mt-6">
           <h2 className="font-semibold mb-3">📝 Your Notes</h2>
           {(showAllNotes ? notes : notes.slice(0, 2)).map((note) => (
             <div key={note._id} className="border-b py-2 flex justify-between items-center">
@@ -362,7 +362,7 @@ export default function StudentDashboard() {
                   <input
                     value={editingText}
                     onChange={(e) => setEditingText(e.target.value)}
-                    className="border rounded-lg p-1 w-full mr-2"
+                    className="bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border rounded-lg p-1 w-full mr-2"
                   />
                   <button
                     onClick={() => handleEditNote(note._id)}
@@ -418,12 +418,12 @@ export default function StudentDashboard() {
 /* ---------------- COMPONENTS ---------------- */
 function StatCard({ title, value, icon, color }) {
   return (
-    <div className="bg-white p-5 rounded-2xl shadow-sm flex items-center gap-4">
+    <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm flex items-center gap-4">
       <div className={`h-12 w-12 rounded-full flex items-center justify-center ${color}`}>
         {icon}
       </div>
       <div>
-        <p className="text-gray-500 text-sm">{title}</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">{title}</p>
         <h2 className="font-semibold">{value}</h2>
       </div>
     </div>
