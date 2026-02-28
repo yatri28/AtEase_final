@@ -53,21 +53,21 @@ export default function Messages() {
   return (
     <DashboardLayout role="student">
       <h1 className="text-2xl font-bold mb-1">Messages</h1>
-      <p className="text-gray-500 mb-6">
+      <p className="text-gray-500 dark:text-gray-400 mb-6">
         Stay connected with your counselor
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Inbox */}
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 bg-white rounded-2xl shadow-sm">
           <div className="p-5 border-b">
             <h2 className="font-semibold">Inbox</h2>
           </div>
 
           <div>
             {messages.length === 0 ? (
-              <p className="p-5 text-gray-500 text-sm">
+              <p className="p-5 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-sm">
                 No messages yet.
               </p>
             ) : (
@@ -91,7 +91,7 @@ export default function Messages() {
         </div>
 
         {/* Right Panel */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
           <h2 className="font-semibold mb-4">
             Available Counselors
           </h2>
@@ -99,7 +99,7 @@ export default function Messages() {
           {counselors.map((c) => (
             <div key={c._id} className="mb-4 border-b pb-2">
               <p className="font-medium">{c.name}</p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {c.specialization}
               </p>
 
