@@ -14,9 +14,9 @@ const userSchema = new mongoose.Schema(
       default: "student"
     },
 
-    year: { type: String },
     department: { type: String },
-    counselor: { type: String }
+year: { type: Number },          // for students
+assignedYear: { type: Number }   // for counselors
   },
   { timestamps: true }
 );

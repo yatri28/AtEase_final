@@ -1,12 +1,20 @@
 import User from "../models/User.js";
-import Counselor from "../models/Counselor.js"; // ✅ add this
+import Counselor from "../models/Counselor.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 // ===================== SIGNUP =====================
 export const signup = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      department,
+      year,
+      assignedYear,
+    } = req.body;
 
     const existing = await User.findOne({ email });
     if (existing) {
@@ -15,15 +23,17 @@ export const signup = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    // ✅ Create user
     const user = await User.create({
       name,
       email,
       password: hashed,
       role,
+      department: role !== "admin" ? department : undefined,
+      year: role === "student" ? Number(year) : undefined,
+      assignedYear: role === "counselor" ? Number(assignedYear) : undefined,
     });
 
-    // ✅ If counselor → create counselor profile
+    // If counselor → create counselor profile
     if (role === "counselor") {
       await Counselor.create({
         userId: user._id,
@@ -54,7 +64,6 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // ✅ ROLE VALIDATION
     if (user.role !== role) {
       return res.status(403).json({
         message: "Role does not match this account",
@@ -70,10 +79,10 @@ export const login = async (req, res) => {
     res.json({
       token,
       user: {
-  _id: user._id,   // ✅ FIX
-  name: user.name,
-  role: user.role,
-},
+        _id: user._id,
+        name: user.name,
+        role: user.role,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

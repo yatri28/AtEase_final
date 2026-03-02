@@ -1,14 +1,23 @@
-// export default router;
 import express from "express";
-import { bookSession, getStudentSessions } from "../controllers/session.controller.js";
+import { protect } from "../middleware/auth.js";
+
+import {
+  bookSession,
+  getStudentSessions,
+  getCounselorSessions,
+  approveSession,
+  cancelSession,
+} from "../controllers/session.controller.js";
 
 const router = express.Router();
 
-// Middleware to verify logged-in user (make sure req.user exists)
-// session.routes.js
-import { protect as authMiddleware } from "../middleware/auth.js";
+/* Student */
+router.post("/book", protect, bookSession);
+router.get("/student", protect, getStudentSessions);
 
-router.post("/book", authMiddleware, bookSession);
-router.get("/my-sessions", authMiddleware, getStudentSessions);
+/* Counselor */
+router.get("/counselor", protect, getCounselorSessions);
+router.put("/approve/:id", protect, approveSession);
+router.put("/cancel/:id", protect, cancelSession);
 
 export default router;
