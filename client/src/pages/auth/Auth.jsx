@@ -11,6 +11,9 @@ export default function Auth() {
     email: "",
     password: "",
     role: "student",
+    department: "",
+    year: "",
+    assignedYear: "",
   });
 
   const navigate = useNavigate();
@@ -19,13 +22,11 @@ export default function Auth() {
     e.preventDefault();
     setError("");
 
-    // ✅ Name validation (signup only)
     if (mode === "signup" && !form.name.trim()) {
       setError("Name is required.");
       return;
     }
 
-    // ✅ Password validation
     const passwordRegex =
       /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
 
@@ -66,7 +67,6 @@ export default function Auth() {
         return;
       }
 
-      // ✅ LOGIN SUCCESS
       if (mode === "login") {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
@@ -76,7 +76,6 @@ export default function Auth() {
         if (data.user.role === "admin") navigate("/admin");
       }
 
-      // ✅ SIGNUP SUCCESS
       if (mode === "signup") {
         alert("Signup successful! Please login.");
         setMode("login");
@@ -85,6 +84,9 @@ export default function Auth() {
           email: "",
           password: "",
           role: "student",
+          department: "",
+          year: "",
+          assignedYear: "",
         });
       }
     } catch (err) {
@@ -97,7 +99,6 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        {/* Logo */}
         <div className="text-center mb-6">
           <div className="mx-auto h-12 w-12 rounded-lg bg-teal-500 flex items-center justify-center text-white font-bold text-xl">
             A
@@ -106,7 +107,6 @@ export default function Auth() {
           <p className="text-gray-500 text-sm">Student Wellness Portal</p>
         </div>
 
-        {/* Tabs */}
         <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
           <button
             type="button"
@@ -128,16 +128,13 @@ export default function Auth() {
           </button>
         </div>
 
-        {/* Form */}
         <form className="space-y-4" onSubmit={handleSubmit}>
-          {/* Error Message */}
           {error && (
             <div className="text-red-500 text-sm bg-red-50 p-2 rounded-lg">
               {error}
             </div>
           )}
 
-          {/* Name (signup only) */}
           {mode === "signup" && (
             <input
               type="text"
@@ -151,7 +148,6 @@ export default function Auth() {
             />
           )}
 
-          {/* Email */}
           <input
             type="email"
             placeholder="Email"
@@ -163,7 +159,6 @@ export default function Auth() {
             required
           />
 
-          {/* Password */}
           <input
             type="password"
             placeholder="Password"
@@ -175,7 +170,6 @@ export default function Auth() {
             required
           />
 
-          {/* Role */}
           <select
             className="w-full px-4 py-2 border rounded-lg"
             value={form.role}
@@ -188,7 +182,59 @@ export default function Auth() {
             <option value="admin">Admin</option>
           </select>
 
-          {/* Submit */}
+          {mode === "signup" && form.role !== "admin" && (
+            <select
+              className="w-full px-4 py-2 border rounded-lg"
+              value={form.department}
+              onChange={(e) =>
+                setForm({ ...form, department: e.target.value })
+              }
+              required
+            >
+              <option value="">Select Department</option>
+              <option value="CP">CP</option>
+              <option value="IT">IT</option>
+              <option value="CE">CE</option>
+              <option value="EE">EE</option>
+              <option value="EC">EC</option>
+
+            </select>
+          )}
+
+          {mode === "signup" && form.role === "student" && (
+            <select
+              className="w-full px-4 py-2 border rounded-lg"
+              value={form.year}
+              onChange={(e) =>
+                setForm({ ...form, year: e.target.value })
+              }
+              required
+            >
+              <option value="">Select Year</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+          )}
+
+          {mode === "signup" && form.role === "counselor" && (
+            <select
+              className="w-full px-4 py-2 border rounded-lg"
+              value={form.assignedYear}
+              onChange={(e) =>
+                setForm({ ...form, assignedYear: e.target.value })
+              }
+              required
+            >
+              <option value="">Handles Year</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+          )}
+
           <button
             type="submit"
             disabled={loading}

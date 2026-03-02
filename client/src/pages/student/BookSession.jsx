@@ -6,6 +6,7 @@ export default function BookSession() {
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedCounselor, setSelectedCounselor] = useState(null);
   const [counselors, setCounselors] = useState([]);
+  const [sessions, setSessions] = useState([]); // 👈 NEW
   const [loading, setLoading] = useState(false);
 
   const today = new Date();
@@ -14,7 +15,6 @@ export default function BookSession() {
   const currentDay = today.getDate();
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
   const monthName = today.toLocaleString("default", { month: "long" });
 
   const times = [
@@ -26,22 +26,54 @@ export default function BookSession() {
     "4:00 PM",
   ];
 
-  // ✅ Fetch counselors from backend
-  useEffect(() => {
-    const fetchCounselors = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/counselors");
-        const data = await res.json();
-        setCounselors(data);
-      } catch (err) {
-        console.error("Failed to fetch counselors");
-      }
-    };
+  /* ================= FETCH COUNSELORS ================= */
+  const fetchCounselors = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
+      const res = await fetch(
+        "http://localhost:5000/api/counselors",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+      if (res.ok) setCounselors(data);
+    } catch (err) {
+      console.error("Failed to fetch counselors");
+    }
+  };
+
+  /* ================= FETCH STUDENT SESSIONS ================= */
+  const fetchSessions = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(
+        "http://localhost:5000/api/sessions/student",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+      if (res.ok) setSessions(data);
+    } catch (err) {
+      console.error("Failed to fetch sessions");
+    }
+  };
+
+  useEffect(() => {
     fetchCounselors();
+    fetchSessions();
   }, []);
 
-  // ✅ Handle Booking
+  /* ================= BOOK SESSION ================= */
   const handleBookSession = async () => {
     if (!selectedDate || !selectedTime || !selectedCounselor) {
       alert("Please select date, time and counselor");
@@ -51,7 +83,6 @@ export default function BookSession() {
     try {
       setLoading(true);
 
-      const user = JSON.parse(localStorage.getItem("user"));
       const token = localStorage.getItem("token");
 
       const sessionDate = new Date(
@@ -69,7 +100,6 @@ export default function BookSession() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            studentId: user.id,
             counselorId: selectedCounselor,
             sessionDate,
             sessionTime: selectedTime,
@@ -85,9 +115,13 @@ export default function BookSession() {
       }
 
       alert("Session request sent successfully!");
+
+      // reset selection
       setSelectedDate(null);
       setSelectedTime(null);
       setSelectedCounselor(null);
+
+      fetchSessions(); // 👈 refresh list
     } catch (err) {
       alert("Server error");
     } finally {
@@ -98,24 +132,23 @@ export default function BookSession() {
   return (
     <DashboardLayout role="student">
       <h1 className="text-2xl font-bold mb-1">Book a Session</h1>
-      <p className="text-gray-500 dark:text-gray-400 mb-6">
+      <p className="text-gray-500 mb-6">
         Schedule your next counselling appointment
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* DATE SECTION */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
+        <div className="bg-white p-6 rounded-2xl shadow-sm">
           <h2 className="font-semibold mb-2">Select Date</h2>
 
-          {/* Month Name */}
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
+          <p className="text-gray-500 mb-4">
             {monthName} {currentYear}
           </p>
 
           <div className="grid grid-cols-7 gap-2 text-center text-sm">
             {["Su","Mo","Tu","We","Th","Fr","Sa"].map((d) => (
-              <span key={d} className="text-gray-500 dark:text-gray-400">{d}</span>
+              <span key={d} className="text-gray-500">{d}</span>
             ))}
 
             {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -127,15 +160,15 @@ export default function BookSession() {
                   key={day}
                   disabled={isPast}
                   onClick={() => !isPast && setSelectedDate(day)}
-                 className={`py-2 rounded-lg transition
-                ${isPast ? "text-gray-400 cursor-not-allowed" : ""}
-                  ${
-              selectedDate === day
-              ? "bg-teal-500 text-white"
-              : !isPast
-              ? "hover:bg-teal-50 dark:hover:bg-gray-700 hover:text-black dark:hover:text-white text-gray-700 dark:text-gray-300"
-                : ""
-                 }`}
+                  className={`py-2 rounded-lg transition
+                    ${isPast ? "text-gray-400 cursor-not-allowed" : ""}
+                    ${
+                      selectedDate === day
+                        ? "bg-teal-500 text-white"
+                        : !isPast
+                        ? "hover:bg-teal-50 text-gray-700"
+                        : ""
+                    }`}
                 >
                   {day}
                 </button>
@@ -145,7 +178,7 @@ export default function BookSession() {
         </div>
 
         {/* TIME SECTION */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
+        <div className="bg-white p-6 rounded-2xl shadow-sm">
           <h2 className="font-semibold mb-4">Select Time</h2>
 
           <div className="grid grid-cols-2 gap-3">
@@ -153,11 +186,12 @@ export default function BookSession() {
               <button
                 key={time}
                 onClick={() => setSelectedTime(time)}
-               className={`py-2 rounded-lg border transition
-             ${selectedTime === time
-                ? "bg-teal-500 border-teal-400 text-white"
-              : "hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-black dark:hover:text-white text-gray-700 dark:text-gray-300"
-              }`}
+                className={`py-2 rounded-lg border transition
+                  ${
+                    selectedTime === time
+                      ? "bg-teal-500 text-white"
+                      : "hover:bg-gray-50 text-gray-700"
+                  }`}
               >
                 {time}
               </button>
@@ -166,7 +200,7 @@ export default function BookSession() {
         </div>
 
         {/* COUNSELOR SECTION */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm flex flex-col">
+        <div className="bg-white p-6 rounded-2xl shadow-sm flex flex-col">
           <h2 className="font-semibold mb-4">Choose Counselor</h2>
 
           <div className="space-y-3 flex-1">
@@ -174,11 +208,12 @@ export default function BookSession() {
               <div
                 key={c._id}
                 onClick={() => setSelectedCounselor(c._id)}
-               className={`p-4 rounded-xl border cursor-pointer transition
-               ${selectedCounselor === c._id
-              ? "bg-teal-500 border-teal-400 text-white"
-                : "hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-black dark:hover:text-white text-gray-700 dark:text-gray-300"
-               }`}
+                className={`p-4 rounded-xl border cursor-pointer transition
+                  ${
+                    selectedCounselor === c._id
+                      ? "bg-teal-500 text-white"
+                      : "hover:bg-gray-50 text-gray-700"
+                  }`}
               >
                 <p className="font-medium">{c.name}</p>
                 <p className="text-sm text-gray-500">
@@ -195,6 +230,50 @@ export default function BookSession() {
           >
             {loading ? "Booking..." : "Book Session"}
           </button>
+        </div>
+      </div>
+
+      {/* ================= MY SESSIONS LIST ================= */}
+      <div className="mt-12">
+        <h2 className="text-xl font-bold mb-4">My Sessions</h2>
+
+        {sessions.length === 0 && (
+          <p className="text-gray-500">No sessions booked yet.</p>
+        )}
+
+        <div className="space-y-4">
+          {sessions.map((s) => (
+            <div
+              key={s._id}
+              className="bg-white p-4 rounded-xl shadow border"
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-semibold">
+                    {s.counselorId?.name}
+                  </p>
+
+                  <p className="text-sm text-gray-500">
+                    {new Date(s.sessionDate).toDateString()} — {s.sessionTime}
+                  </p>
+                </div>
+
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    s.status === "Pending"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : s.status === "Approved"
+                      ? "bg-green-100 text-green-700"
+                      : s.status === "Cancelled"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  {s.status}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </DashboardLayout>
