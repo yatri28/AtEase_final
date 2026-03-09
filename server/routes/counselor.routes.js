@@ -5,42 +5,50 @@ import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Get only assigned counselor for logged-in student
+/*
+========================================
+GET ASSIGNED COUNSELORS FOR A STUDENT
+========================================
+*/
 router.get("/", protect, async (req, res) => {
   try {
+    // Get logged in student
     const student = await User.findById(req.user.id);
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    // Find correct counselor from User model
-    const counselorUser = await User.findOne({
+    // Find counselors with same department + assignedYear
+    const counselorUsers = await User.find({
       role: "counselor",
       department: student.department,
       assignedYear: student.year,
     });
 
-    if (!counselorUser) {
+    if (counselorUsers.length === 0) {
       return res.status(404).json({ message: "No counselor assigned" });
     }
 
-    // Get counselor profile from Counselor collection
-    const counselorProfile = await Counselor.findOne({
-      userId: counselorUser._id,
-    });
+    const counselors = [];
 
-    if (!counselorProfile) {
-      return res.status(404).json({ message: "Counselor profile not found" });
+    // Fetch counselor profiles
+    for (const user of counselorUsers) {
+      const profile = await Counselor.findOne({
+        userId: user._id,
+      });
+
+      counselors.push({
+        _id: user._id,
+        name: user.name,
+        specialization: profile?.specialization || "General Counseling",
+      });
     }
 
-    res.json([{
-      _id: counselorUser._id,
-      name: counselorUser.name,
-      specialization: counselorProfile.specialization,
-    }]);
+    res.json(counselors);
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 });
