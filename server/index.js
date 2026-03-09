@@ -9,7 +9,8 @@ import noteRoutes from "./routes/noteRoutes.js";
 import counselorRoutes from "./routes/counselor.routes.js";
 import moodRoutes from "./routes/moodRoutes.js";
 import userRoutes from "./routes/userRoutes.js";   // ✅ ADD PROFILE ROUTES
-
+import messageRoutes from "./routes/messageRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
 dotenv.config();
 connectDB();
 
@@ -35,6 +36,8 @@ app.use("/api/sessions", sessionRoutes);
 app.use("/api/counselors", counselorRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/moods", moodRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 /* ================== HEALTH CHECK ================== */
 

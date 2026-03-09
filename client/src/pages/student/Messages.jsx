@@ -31,15 +31,23 @@ export default function Messages() {
   };
 
   const fetchCounselors = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:5000/api/counselors"
-      );
-      setCounselors(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await axios.get(
+      "http://localhost:5000/api/counselors",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    setCounselors(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
 
   const sendMessage = async () => {
     if (!selectedCounselor || !messageText.trim()) return;
@@ -54,9 +62,7 @@ export default function Messages() {
         }
       );
 
-      // Add new message instantly
       setMessages((prev) => [res.data, ...prev]);
-
       setMessageText("");
       setSuccess("Message sent successfully!");
 
@@ -73,11 +79,15 @@ export default function Messages() {
     );
   };
 
-  // Inbox = messages received by student
-  const incomingMessages = messages.filter(
-    (msg) =>
-      msg.receiverId?.toString() === user._id.toString()
-  );
+  // FIXED: Safe ObjectId handling
+  const incomingMessages = messages.filter((msg) => {
+    const receiverId =
+      typeof msg.receiverId === "object"
+        ? msg.receiverId._id
+        : msg.receiverId;
+
+    return receiverId?.toString() === user._id.toString();
+  });
 
   return (
     <DashboardLayout role="student">
@@ -91,7 +101,6 @@ export default function Messages() {
         {/* LEFT SIDE */}
         <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm">
 
-          {/* SUCCESS MESSAGE */}
           {success && (
             <div className="p-3 bg-green-100 text-green-700 text-sm">
               {success}
@@ -134,15 +143,25 @@ export default function Messages() {
             </p>
           ) : (
             messages.map((msg) => {
-              const counselor = counselors.find(
-                (c) =>
-                  c._id === msg.receiverId ||
-                  c._id === msg.senderId
+
+              // FIXED: Safe ID extraction
+              const receiverId =
+                typeof msg.receiverId === "object"
+                  ? msg.receiverId._id
+                  : msg.receiverId;
+
+              const senderId =
+                typeof msg.senderId === "object"
+                  ? msg.senderId._id
+                  : msg.senderId;
+
+              const counselor = counselors.find((c) =>
+                c._id.toString() === receiverId?.toString() ||
+                c._id.toString() === senderId?.toString()
               );
 
               const isSent =
-                msg.senderId?.toString() ===
-                user._id.toString();
+                senderId?.toString() === user._id.toString();
 
               return (
                 <div
