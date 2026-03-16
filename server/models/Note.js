@@ -12,6 +12,14 @@ const noteSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    sentToCounselor: {
+      type: Boolean,
+      default: false
+    },
+    anonymous: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

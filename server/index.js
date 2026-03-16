@@ -11,6 +11,8 @@ import moodRoutes from "./routes/moodRoutes.js";
 import userRoutes from "./routes/userRoutes.js";   // ✅ ADD PROFILE ROUTES
 import messageRoutes from "./routes/messageRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
+import settingsRoutes from "./routes/settings.routes.js";
+
 dotenv.config();
 connectDB();
 
@@ -38,6 +40,7 @@ app.use("/api/notes", noteRoutes);
 app.use("/api/moods", moodRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/settings", settingsRoutes);
 
 /* ================== HEALTH CHECK ================== */
 

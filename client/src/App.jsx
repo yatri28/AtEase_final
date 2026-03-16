@@ -6,7 +6,8 @@ import Messages from "./pages/student/Messages";
 import Profile from "./pages/student/Profile";
 import Settings from "./pages/student/Settings";
 import CounselorDashboard from "./pages/counselor/Dashboard";
-import CounselorSessions from "./pages/counselor/CounselorSessions";
+import { Toaster } from "react-hot-toast";
+
 
 export default function App() {
   return (
@@ -23,7 +24,6 @@ export default function App() {
 
         {/* Counselor */}
         <Route path="/counselor" element={<CounselorDashboard />} />
-<Route path="/counselor/sessions" element={<CounselorSessions />} />
       </Routes>
     </BrowserRouter>
   );

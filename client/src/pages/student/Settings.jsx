@@ -1,18 +1,63 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import { ThemeContext } from "../../context/ThemeContext";
+import { SettingsContext } from "../../context/SettingsContext.jsx";
+import toast from "react-hot-toast";
 
 export default function Settings() {
+  const { settings, updateSettings } = useContext(SettingsContext);
   const { darkMode, setDarkMode } = useContext(ThemeContext);
 
-  const [settings, setSettings] = useState({
+  // Local copy of settings for editing
+  const [localSettings, setLocalSettings] = useState({
     emailNotifications: true,
     sessionReminders: true,
     anonymousNotes: false,
   });
 
-  function toggle(key) {
-    setSettings({ ...settings, [key]: !settings[key] });
+  // Sync local settings with backend settings safely
+useEffect(() => {
+  if (!settings) return;
+
+  // Wrap setState inside a micro-task
+  const syncSettings = () => {
+    setLocalSettings((prev) => ({
+      ...prev,
+      ...settings,
+    }));
+  };
+
+  // Schedule it after the current render
+  Promise.resolve().then(syncSettings);
+}, [settings]);
+
+  // Check if any changes were made
+  const hasChanges =
+    JSON.stringify(localSettings) !== JSON.stringify(settings);
+
+  const toggleSetting = (key) => {
+    setLocalSettings((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      await updateSettings(localSettings);
+      toast.success("Settings saved successfully");
+    } catch{
+      toast.error("Failed to save settings");
+    }
+  };
+
+  // Loading fallback
+  if (!settings) {
+    return (
+      <DashboardLayout role="student">
+        <p className="p-6">Loading settings...</p>
+      </DashboardLayout>
+    );
   }
 
   return (
@@ -23,20 +68,19 @@ export default function Settings() {
       </p>
 
       <div className="space-y-6 max-w-3xl">
-
         {/* Notifications */}
         <Section title="Notifications" desc="Control how we notify you">
           <Toggle
             label="Email Notifications"
             desc="Receive important updates via email"
-            checked={settings.emailNotifications}
-            onChange={() => toggle("emailNotifications")}
+            checked={localSettings.emailNotifications}
+            onChange={() => toggleSetting("emailNotifications")}
           />
           <Toggle
             label="Session Reminders"
             desc="Get reminders before scheduled sessions"
-            checked={settings.sessionReminders}
-            onChange={() => toggle("sessionReminders")}
+            checked={localSettings.sessionReminders}
+            onChange={() => toggleSetting("sessionReminders")}
           />
         </Section>
 
@@ -45,8 +89,8 @@ export default function Settings() {
           <Toggle
             label="Anonymous Notes"
             desc="Allow counselors to see notes anonymously"
-            checked={settings.anonymousNotes}
-            onChange={() => toggle("anonymousNotes")}
+            checked={localSettings.anonymousNotes}
+            onChange={() => toggleSetting("anonymousNotes")}
           />
         </Section>
 
@@ -60,8 +104,17 @@ export default function Settings() {
           />
         </Section>
 
+        {/* Save Button */}
         <div className="flex justify-end">
-          <button className="px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600">
+          <button
+            disabled={!hasChanges}
+            onClick={handleSave}
+            className={`px-6 py-2 rounded-lg text-white transition ${
+              hasChanges
+                ? "bg-teal-500 hover:bg-teal-600"
+                : "bg-gray-300 cursor-not-allowed"
+            }`}
+          >
             Save Changes
           </button>
         </div>
@@ -70,18 +123,22 @@ export default function Settings() {
   );
 }
 
-/* ---------------- Components ---------------- */
-
+/* ---------- Section Component ---------- */
 function Section({ title, desc, children }) {
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
       <h2 className="font-semibold mb-1">{title}</h2>
-      {desc && <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{desc}</p>}
+      {desc && (
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          {desc}
+        </p>
+      )}
       <div className="space-y-4">{children}</div>
     </div>
   );
 }
 
+/* ---------- Toggle Component ---------- */
 function Toggle({ label, desc, checked, onChange }) {
   return (
     <div className="flex items-center justify-between">
