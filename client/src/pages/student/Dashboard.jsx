@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
+import { SettingsContext } from "../../context/SettingsContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -15,17 +16,12 @@ import {
 } from "recharts";
 
 export default function StudentDashboard() {
+  const { settings } = useContext(SettingsContext);
   const navigate = useNavigate();
 
   const loggedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const studentId = loggedUser?._id;
   const token = localStorage.getItem("token");
-
-  // 🔒 Safety
-  if (!token || !studentId) {
-    window.location.href = "/";
-    return null;
-  }
 
   const [notes, setNotes] = useState([]);
   const [noteText, setNoteText] = useState("");
@@ -38,6 +34,7 @@ export default function StudentDashboard() {
   const [todayMoodId, setTodayMoodId] = useState(null);
   const [selectedMood, setSelectedMood] = useState(null);
 
+
   const moods = [
     { emoji: "😊", label: "Happy", value: 5 },
     { emoji: "😌", label: "Calm", value: 4 },
@@ -49,61 +46,72 @@ export default function StudentDashboard() {
   const dayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
 
   /* ---------------- FETCH NOTES ---------------- */
-  useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        const res = await fetch(
-          `http://localhost:5000/api/notes/${studentId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const data = await res.json();
-        setNotes(data);
-      } catch (err) {
-        console.log(err);
-      }
-    };
+const fetchMonthlyMoods = useCallback(async () => {
+  try {
+    const res = await axios.get(
+      "http://localhost:5000/api/moods/monthly",
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-    fetchNotes();
-    fetchMonthlyMoods();
-  }, []);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  /* ---------------- FETCH MOODS ---------------- */
-  const fetchMonthlyMoods = async () => {
+    const fullMonth = Array.from({ length: daysInMonth }, (_, i) => ({
+      date: new Date(year, month, i + 1),
+      mood: null,
+    }));
+
+    res.data.forEach((m) => {
+      const d = new Date(m.createdAt).getDate();
+      fullMonth[d - 1].mood =
+        { Happy: 5, Calm: 4, Neutral: 3, Sad: 2, Stressed: 1 }[m.moodType];
+    });
+
+    setMonthlyMoods(fullMonth);
+
+    const today = res.data.find(
+      (m) => new Date(m.createdAt).getDate() === now.getDate()
+    );
+
+    if (today) {
+      setTodayMoodId(today._id);
+      setSelectedMood(today.moodType);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}, [token]);
+
+
+useEffect(() => {
+  if (!token || !studentId) {
+    navigate("/");
+    return;
+  }
+
+  const fetchData = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5000/api/moods/monthly",
+      // Fetch notes
+      const res = await fetch(
+        `http://localhost:5000/api/notes/${studentId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      const data = await res.json();
+      setNotes(data);
 
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      const fullMonth = Array.from({ length: daysInMonth }, (_, i) => ({
-        date: new Date(year, month, i + 1),
-        mood: null,
-      }));
-
-      res.data.forEach((m) => {
-        const d = new Date(m.createdAt).getDate();
-        fullMonth[d - 1].mood =
-          { Happy: 5, Calm: 4, Neutral: 3, Sad: 2, Stressed: 1 }[m.moodType];
-      });
-
-      setMonthlyMoods(fullMonth);
-
-      const today = res.data.find(
-        (m) => new Date(m.createdAt).getDate() === now.getDate()
-      );
-      if (today) {
-        setTodayMoodId(today._id);
-        setSelectedMood(today.moodType);
-      }
+      // Fetch moods
+      await fetchMonthlyMoods(); // ✅ safe call
     } catch (err) {
       console.log(err);
     }
   };
+
+  fetchData();
+}, [studentId, token, navigate, fetchMonthlyMoods]);
+
+  /* ---------------- FETCH MOODS ---------------- */
 
   /* ---------------- CALCULATE STREAK ---------------- */
   const calculateStreak = () => {
@@ -165,7 +173,7 @@ export default function StudentDashboard() {
   };
 
   /* ---------------- NOTE SUBMIT ---------------- */
-  const handleSubmitNote = async () => {
+   const handleSubmitNote = async () => {
     if (!noteText.trim()) return;
 
     const res = await fetch("http://localhost:5000/api/notes", {
@@ -217,6 +225,37 @@ export default function StudentDashboard() {
       console.log(err);
     }
   };
+
+const sendNoteToCounselor = async (noteId) => {
+  try {
+    // Send note to counselor
+    await axios.post(
+      "http://localhost:5000/api/notes/send-to-counselor",
+      {
+        noteId,
+        studentId, // include this if backend needs it
+        anonymous: settings?.anonymousNotes || false,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // Update local state to mark as sent
+    setNotes((prev) =>
+      prev.map((note) =>
+        note._id === noteId ? { ...note, sentToCounselor: true } : note
+      )
+    );
+
+    alert("Note sent to counselor successfully");
+  } catch (err) {
+    console.log(err);
+    alert("Failed to send note");
+  }
+};
 
   /* ================= UI ================= */
   return (
@@ -275,7 +314,7 @@ export default function StudentDashboard() {
       </div>
 
       {/* CHART */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm mb-6">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl text-gray-500 dark:text-gray-400 shadow-sm mb-6">
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={monthlyMoods}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -319,7 +358,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* NOTES */}
       {showNoteBox && (
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm mt-6">
           <h2 className="font-semibold mb-2">Write a Note</h2>
@@ -356,8 +394,8 @@ export default function StudentDashboard() {
       {notes.length > 0 && (
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm mt-6">
           <h2 className="font-semibold mb-3">📝 Your Notes</h2>
-          {(showAllNotes ? notes : notes.slice(0, 2)).map((note) => (
-            <div key={note._id} className="border-b py-2 flex justify-between items-center">
+         {(showAllNotes ? notes : notes.slice(0, 2)).map((note) => (
+           <div key={note._id} className="border-b py-2 flex justify-between items-center">
               {editingNoteId === note._id ? (
                 <>
                   <input
@@ -397,6 +435,19 @@ export default function StudentDashboard() {
                     >
                       Delete
                     </button>
+                      {settings?.anonymousNotes && (
+                    <button
+                   onClick={() => sendNoteToCounselor(note._id)}
+                      disabled={note.sentToCounselor}
+                      className={`text-sm px-2 py-1 rounded-md ${
+                          note.sentToCounselor
+                       ? "bg-gray-300 cursor-not-allowed"
+                         : "border border-teal-400 text-teal-500 hover:bg-teal-50"
+                          }`}
+                           >
+                        {note.sentToCounselor ? "Sent" : "Send to Counselor"}
+                       </button>
+                         )}
                   </div>
                 </>
               )}
@@ -415,6 +466,7 @@ export default function StudentDashboard() {
     </DashboardLayout>
   );
 }
+
 
 /* ---------------- COMPONENTS ---------------- */
 function StatCard({ title, value, icon, color }) {

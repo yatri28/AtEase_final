@@ -8,49 +8,44 @@ export default function Profile() {
 
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    fetchUser();
-  }, []);
-
+useEffect(() => {
   const fetchUser = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5000/api/users/me",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await axios.get("http://localhost:5000/api/users/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setUser(res.data);
     } catch (err) {
       console.error(err);
     }
   };
+
+  fetchUser();
+}, [token]); // ✅ token is included as dependency
 
   const handleChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value });
   };
 
-  const handleSave = async () => {
-    try {
-      const res = await axios.put(
-        "http://localhost:5000/api/users/update",
-        user,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+const handleSave = async () => {
+  try {
+    const res = await axios.put(
+      "http://localhost:5000/api/users/update",
+      user,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      setUser(res.data);
-      setEditMode(false);
-      alert("Profile updated successfully!");
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    setUser(res.data);
+    setEditMode(false);
+
+    // Update localStorage
+    localStorage.setItem("user", JSON.stringify(res.data));
+
+    alert("Profile updated successfully!");
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   if (!user) return <div className="p-6">Loading...</div>;
 

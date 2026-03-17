@@ -1,5 +1,7 @@
 import express from "express";
 import Note from "../models/Note.js";
+import { sendNoteToCounselor } from "../controllers/note.controller.js";
+import verifyToken from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
@@ -18,6 +20,12 @@ router.post("/", async (req, res) => {
   res.status(500).json({ message: error.message });
 }
 });
+
+router.post(
+  "/send-to-counselor",
+  verifyToken,
+  sendNoteToCounselor
+);
 
 router.get("/:studentId", async (req, res) => {
   try {
@@ -59,6 +67,5 @@ router.delete("/:noteId", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
 
 export default router;

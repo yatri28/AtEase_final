@@ -6,7 +6,8 @@ import Messages from "./pages/student/Messages";
 import Profile from "./pages/student/Profile";
 import Settings from "./pages/student/Settings";
 import CounselorDashboard from "./pages/counselor/Dashboard";
-import CounselorSessions from "./pages/counselor/CounselorSessions";
+import { Toaster } from "react-hot-toast";
+
 import CounselorMessages from "./pages/counselor/CounselorMessages";
 
 export default function App() {

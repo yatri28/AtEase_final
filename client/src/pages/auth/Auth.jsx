@@ -89,7 +89,7 @@ export default function Auth() {
           assignedYear: "",
         });
       }
-    } catch (err) {
+    } catch {
       setError("Server error. Try again later.");
     } finally {
       setLoading(false);
