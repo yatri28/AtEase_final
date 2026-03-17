@@ -15,6 +15,7 @@ export default function Sidebar({ role }) {
     counselor: [
       { name: "Dashboard", path: "/counselor", icon: "🏠" },
       { name: "Anonymous Notes", path: "/counselor/notes", icon: "📝" },
+      { name: "Messages", path: "/counselor/messages", icon: "💬" },
       { name: "Sessions", path: "/counselor/sessions", icon: "📆" },
       { name: "Settings", path: "/counselor/settings", icon: "⚙️" },
     ],
@@ -101,7 +102,7 @@ export default function Sidebar({ role }) {
 
       {/* Footer */}
       <div className="p-4 text-xs text-teal-300 border-t border-slate-800">
-        Crisis Helpline: <b>988</b>
+        Crisis Helpline: <b>23it472@gmail.com</b>
       </div>
     </aside>
   );

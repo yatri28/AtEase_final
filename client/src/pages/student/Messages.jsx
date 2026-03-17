@@ -73,11 +73,26 @@ export default function Messages() {
     }
   };
 
-  const deleteMessageFrontend = (id) => {
-    setMessages((prev) =>
-      prev.filter((msg) => msg._id !== id)
-    );
-  };
+  
+  const deleteMessage= async (id) => {
+  try {
+    const token = localStorage.getItem("token");
+    
+    // 1. Send DELETE request to your backend
+    await axios.delete(`http://localhost:5000/api/messages/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // 2. Only update state if the database deletion was successful
+    setMessages((prev) => prev.filter((msg) => msg._id !== id));
+    
+  } catch (error) {
+    console.error("Error deleting message:", error);
+    alert("Failed to delete message. Please try again.");
+  }
+};
 
   // FIXED: Safe ObjectId handling
   const incomingMessages = messages.filter((msg) => {
@@ -192,7 +207,7 @@ export default function Messages() {
 
                     <button
                       onClick={() =>
-                        deleteMessageFrontend(msg._id)
+                        deleteMessage(msg._id)
                       }
                       className="text-red-500 text-xs"
                     >

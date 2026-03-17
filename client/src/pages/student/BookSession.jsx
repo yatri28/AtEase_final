@@ -6,7 +6,7 @@ export default function BookSession() {
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedCounselor, setSelectedCounselor] = useState(null);
   const [counselors, setCounselors] = useState([]);
-  const [sessions, setSessions] = useState([]); // 👈 NEW
+  const [sessions, setSessions] = useState([]); 
   const [loading, setLoading] = useState(false);
 
   const today = new Date();

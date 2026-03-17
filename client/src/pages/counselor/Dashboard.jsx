@@ -30,12 +30,23 @@ export default function CounselorDashboard() {
   }, [selectedMonth]);
 
   const fetchAnalytics = async (month) => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const res = await axios.get(
-        `http://localhost:5000/api/analytics/student-mood-clusters?month=${month}&year=${year}`
-      );
+    // Retrieve the token from localStorage
+    const token = localStorage.getItem("token"); 
+
+    const res = await axios.get(
+      `http://localhost:5000/api/analytics/student-mood-clusters?month=${month}&year=${year}`,
+      {
+        headers: {
+          // Send the token in the Authorization header
+          Authorization: `Bearer ${token}` 
+        }
+      }
+    );
+
+    
 
       setData(res.data.scatterData || []);
       setSummary(res.data.summary || {});

@@ -41,7 +41,7 @@ export default function StudentDashboard() {
   const moods = [
     { emoji: "😊", label: "Happy", value: 5 },
     { emoji: "😌", label: "Calm", value: 4 },
-    { emoji: "😐", label: "Normal", value: 3 },
+    { emoji: "😐", label: "Neutral", value: 3 },
     { emoji: "😢", label: "Sad", value: 2 },
     { emoji: "😰", label: "Stressed", value: 1 },
   ];
@@ -309,7 +309,8 @@ export default function StudentDashboard() {
               text="📅 Book a Session"
               onClick={() => navigate("/student/book")}
             />
-            <ActionButton text="💬 Message Counselor" />
+            <ActionButton text="💬 Message Counselor"
+             onClick={() => navigate("/student/messages")} />
             <ActionButton
               text="📝 Write a Note"
               onClick={() => setShowNoteBox(true)}

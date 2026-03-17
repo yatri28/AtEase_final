@@ -71,4 +71,27 @@ router.get("/:studentId/:counselorId", async (req, res) => {
   }
 });
 
+
+// =======================
+// Delete Message by ID
+// =======================
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Find and delete the message
+    const deletedMessage = await Message.findByIdAndDelete(id);
+
+    if (!deletedMessage) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    res.json({ message: "Message deleted successfully" });
+  } catch (error) {
+    console.error("Delete Message Error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 export default router;

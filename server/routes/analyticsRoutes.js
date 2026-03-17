@@ -1,64 +1,106 @@
 import express from "express";
 import Mood from "../models/Mood.js";
+import User from "../models/User.js";
+import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/student-mood-clusters", async (req, res) => {
+router.get("/student-mood-clusters", protect, async (req, res) => {
   try {
     const month = parseInt(req.query.month);
     const year = parseInt(req.query.year);
 
     if (isNaN(month) || isNaN(year)) {
-      return res.status(400).json({ error: "Month and year required" });
+      return res.status(400).json({ message: "Month and year required" });
     }
 
-    const startDate = new Date(Date.UTC(year, month, 1));
-    const endDate = new Date(Date.UTC(year, month + 1, 1));
+    /* =========================
+       GET COUNSELOR
+    ========================= */
 
-    const aggregation = await Mood.aggregate([
-      {
-        $match: {
-          date: { $gte: startDate, $lt: endDate }
-        }
-      },
-      {
-        $addFields: {
-          moodScore: {
-            $switch: {
-              branches: [
-                { case: { $eq: ["$moodType", "Happy"] }, then: 5 },
-                { case: { $eq: ["$moodType", "Calm"] }, then: 4 },
-                { case: { $eq: ["$moodType", "Neutral"] }, then: 3 },
-                { case: { $eq: ["$moodType", "Sad"] }, then: 2 },
-                { case: { $eq: ["$moodType", "Stressed"] }, then: 1 }
-              ],
-              default: 3
-            }
-          }
-        }
-      },
-      {
-        $group: {
-          _id: "$user",
-          avgMood: { $avg: "$moodScore" }
-        }
-      },
-      {
-        $addFields: {
-          dominantMood: {
-            $toInt: { $add: ["$avgMood", 0.5] }
-          }
-        }
-      },
-      {
-        $group: {
-          _id: "$dominantMood",
-          students: { $push: "$_id" },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { _id: 1 } }
-    ]);
+    const counselor = await User.findById(req.user.id);
+
+    if (!counselor || counselor.role !== "counselor") {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    /* =========================
+       FIND ASSIGNED STUDENTS
+    ========================= */
+
+    const students = await User.find({
+      role: "student",
+      department: counselor.department,
+      year: counselor.assignedYear,
+    });
+
+    const studentIds = students.map((s) => s._id);
+
+    if (studentIds.length === 0) {
+      return res.json({
+        scatterData: [],
+        summary: {},
+        totalStudents: 0,
+        facultyInsights: {}
+      });
+    }
+
+    /* =========================
+       DATE RANGE
+    ========================= */
+
+    const startDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 1);
+
+    /* =========================
+       FETCH MOODS
+    ========================= */
+
+    const moods = await Mood.find({
+      user: { $in: studentIds },
+      date: { $gte: startDate, $lt: endDate }
+    });
+
+    if (moods.length === 0) {
+      return res.json({
+        scatterData: [],
+        summary: {},
+        totalStudents: 0,
+        facultyInsights: {}
+      });
+    }
+
+    /* =========================
+       MOOD SCORE MAP
+    ========================= */
+
+    const moodScore = {
+      Happy: 5,
+      Calm: 4,
+      Neutral: 3,
+      Sad: 2,
+      Stressed: 1
+    };
+
+    /* =========================
+       GROUP MOODS PER STUDENT
+    ========================= */
+
+    const studentMoodMap = {};
+
+    moods.forEach((m) => {
+      const score = moodScore[m.moodType] || 3;
+
+      if (!studentMoodMap[m.user]) {
+        studentMoodMap[m.user] = [];
+      }
+
+      studentMoodMap[m.user].push(score);
+    });
+
+    /* =========================
+       CALCULATE AVERAGE
+    ========================= */
 
     const scatterData = [];
     const summary = {
@@ -69,28 +111,33 @@ router.get("/student-mood-clusters", async (req, res) => {
       happy: 0
     };
 
-    aggregation.forEach(cluster => {
-      const moodScore = cluster._id;
-      const count = cluster.count;
+    Object.keys(studentMoodMap).forEach((studentId) => {
+      const scores = studentMoodMap[studentId];
 
-      cluster.students.forEach(studentId => {
-        scatterData.push({
-          x: Math.random() * 6 - 3,
-          y: moodScore,
-          studentId
-        });
+      const avg =
+        scores.reduce((a, b) => a + b, 0) / scores.length;
+
+      const mood = Math.round(avg);
+
+      scatterData.push({
+        x: Math.random() * 6 - 3,
+        y: mood,
+        studentId
       });
 
-      if (moodScore === 1) summary.stressed = count;
-      if (moodScore === 2) summary.sad = count;
-      if (moodScore === 3) summary.neutral = count;
-      if (moodScore === 4) summary.calm = count;
-      if (moodScore === 5) summary.happy = count;
+      if (mood === 1) summary.stressed++;
+      if (mood === 2) summary.sad++;
+      if (mood === 3) summary.neutral++;
+      if (mood === 4) summary.calm++;
+      if (mood === 5) summary.happy++;
     });
 
     const totalStudents = scatterData.length;
 
-    // ✅ PROFESSIONAL FACULTY ANALYSIS
+    /* =========================
+       FACULTY INSIGHTS
+    ========================= */
+
     const wellbeingIndex =
       totalStudents === 0
         ? 0
@@ -99,17 +146,19 @@ router.get("/student-mood-clusters", async (req, res) => {
               summary.calm * 4 +
               summary.neutral * 3 +
               summary.sad * 2 +
-              summary.stressed * 1) /
+              summary.stressed) /
             totalStudents
           ).toFixed(2);
 
     const concernStudents = summary.sad + summary.stressed;
+
     const concernPercentage =
       totalStudents === 0
         ? 0
         : ((concernStudents / totalStudents) * 100).toFixed(1);
 
     const positiveStudents = summary.happy + summary.calm;
+
     const positivePercentage =
       totalStudents === 0
         ? 0
@@ -128,9 +177,9 @@ router.get("/student-mood-clusters", async (req, res) => {
       }
     });
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 

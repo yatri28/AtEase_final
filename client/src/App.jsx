@@ -7,6 +7,7 @@ import Profile from "./pages/student/Profile";
 import Settings from "./pages/student/Settings";
 import CounselorDashboard from "./pages/counselor/Dashboard";
 import CounselorSessions from "./pages/counselor/CounselorSessions";
+import CounselorMessages from "./pages/counselor/CounselorMessages";
 
 export default function App() {
   return (
@@ -23,7 +24,8 @@ export default function App() {
 
         {/* Counselor */}
         <Route path="/counselor" element={<CounselorDashboard />} />
-<Route path="/counselor/sessions" element={<CounselorSessions />} />
+        <Route path="/counselor/sessions" element={<CounselorSessions />} />
+        <Route path="/counselor/messages" element={<CounselorMessages />} />
       </Routes>
     </BrowserRouter>
   );
