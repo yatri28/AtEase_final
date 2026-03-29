@@ -15,9 +15,27 @@ const messageSchema = new mongoose.Schema(
     content: {
       type: String,
       required: true,
+    },
+    // INDEPENDENT BOOKMARKS
+    isBookmarkedByStudent: { 
+      type: Boolean, 
+      default: false 
+    },
+    isBookmarkedByCounselor: { 
+      type: Boolean, 
+      default: false 
+    },
+    // INDEPENDENT DELETION (Soft Delete)
+    isDeletedByStudent: { 
+      type: Boolean, 
+      default: false 
+    },
+    isDeletedByCounselor: { 
+      type: Boolean, 
+      default: false 
     }
   },
-  { timestamps: true } // REQUIRED
+  { timestamps: true }
 );
 
 export default mongoose.model("Message", messageSchema);
