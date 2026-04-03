@@ -179,7 +179,7 @@ export default function CounselorMessages() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-8">
-                  <DataTile label="College ID" value={selectedStudent._id} />
+                  
                   <DataTile label="Year" value={`${selectedStudent.year} Year`} />
                   <DataTile label="Department" value={selectedStudent.department} />
                   <DataTile label="Email Address" value={selectedStudent.email} isEmail />

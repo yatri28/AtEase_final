@@ -29,6 +29,8 @@ export default function StudentDashboard() {
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingText, setEditingText] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const [monthlyMoods, setMonthlyMoods] = useState([]);
   const [todayMoodId, setTodayMoodId] = useState(null);
@@ -49,13 +51,14 @@ export default function StudentDashboard() {
 const fetchMonthlyMoods = useCallback(async () => {
   try {
     const res = await axios.get(
-      "http://localhost:5000/api/moods/monthly",
-      { headers: { Authorization: `Bearer ${token}` } }
+      `http://localhost:5000/api/moods/monthly?month=${selectedMonth}&year=${selectedYear}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
     );
 
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
+    const year = selectedYear;
+    const month = selectedMonth;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
     const fullMonth = Array.from({ length: daysInMonth }, (_, i) => ({
@@ -66,23 +69,32 @@ const fetchMonthlyMoods = useCallback(async () => {
     res.data.forEach((m) => {
       const d = new Date(m.createdAt).getDate();
       fullMonth[d - 1].mood =
-        { Happy: 5, Calm: 4, Neutral: 3, Sad: 2, Stressed: 1 }[m.moodType];
+        { Happy: 5, Calm: 4, Neutral: 3, Sad: 2, Stressed: 1 }[
+          m.moodType
+        ];
     });
 
     setMonthlyMoods(fullMonth);
 
-    const today = res.data.find(
-      (m) => new Date(m.createdAt).getDate() === now.getDate()
-    );
+    // Only set today's mood for current month
+    const now = new Date();
+    if (
+      selectedMonth === now.getMonth() &&
+      selectedYear === now.getFullYear()
+    ) {
+      const today = res.data.find(
+        (m) => new Date(m.createdAt).getDate() === now.getDate()
+      );
 
-    if (today) {
-      setTodayMoodId(today._id);
-      setSelectedMood(today.moodType);
+      if (today) {
+        setTodayMoodId(today._id);
+        setSelectedMood(today.moodType);
+      }
     }
   } catch (err) {
     console.log(err);
   }
-}, [token]);
+}, [token, selectedMonth, selectedYear]);
 
 
 useEffect(() => {
@@ -312,6 +324,30 @@ const sendNoteToCounselor = async (noteId) => {
           </button>
         )}
       </div>
+      <div className="flex gap-4 mb-4">
+  <select
+    value={selectedMonth}
+    onChange={(e) => setSelectedMonth(Number(e.target.value))}
+    className="px-4 py-2 rounded-lg border"
+  >
+    {[
+      "January","February","March","April","May","June",
+      "July","August","September","October","November","December"
+    ].map((m, i) => (
+      <option key={i} value={i}>{m}</option>
+    ))}
+  </select>
+
+  <select
+    value={selectedYear}
+    onChange={(e) => setSelectedYear(Number(e.target.value))}
+    className="px-4 py-2 rounded-lg border"
+  >
+    {[2023, 2024, 2025, 2026].map((y) => (
+      <option key={y} value={y}>{y}</option>
+    ))}
+  </select>
+</div>
 
       {/* CHART */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl text-gray-500 dark:text-gray-400 shadow-sm mb-6">

@@ -72,13 +72,19 @@ router.delete("/delete/:id", verifyToken, async (req, res) => {
 
 router.get("/monthly", verifyToken, async (req, res) => {
   try {
-    const start = new Date();
-    start.setDate(1);
-    start.setHours(0, 0, 0, 0);
+    const { month, year } = req.query;
+
+    // fallback to current if not provided
+    const now = new Date();
+    const selectedMonth = month ? Number(month) : now.getMonth();
+    const selectedYear = year ? Number(year) : now.getFullYear();
+
+    const start = new Date(selectedYear, selectedMonth, 1);
+    const end = new Date(selectedYear, selectedMonth + 1, 1);
 
     const moods = await Mood.find({
       user: req.user.id,
-      createdAt: { $gte: start },
+      createdAt: { $gte: start, $lt: end },
     }).sort({ createdAt: 1 });
 
     res.json(moods);
@@ -86,5 +92,4 @@ router.get("/monthly", verifyToken, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 export default router;
