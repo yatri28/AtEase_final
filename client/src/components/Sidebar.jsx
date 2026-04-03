@@ -20,9 +20,10 @@ export default function Sidebar({ role }) {
       { name: "Settings", path: "/counselor/settings", icon: "⚙️" },
     ],
     admin: [
-      { name: "Dashboard", path: "/admin", icon: "🏠" },
-      { name: "Users", path: "/admin/users", icon: "👥" },
-      { name: "Settings", path: "/admin/settings", icon: "⚙️" },
+         { name: "Dashboard",  path: "/admin",           icon: "🏠" },
+      { name: "Users",      path: "/admin/users",     icon: "👥" },
+      { name: "Analytics",  path: "/admin/analytics", icon: "📊" },
+      { name: "Reports",    path: "/admin/reports",   icon: "📄" },
     ],
   };
 
