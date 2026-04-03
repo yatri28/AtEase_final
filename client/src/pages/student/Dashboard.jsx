@@ -336,7 +336,7 @@ const sendNoteToCounselor = async (noteId) => {
   <select
     value={selectedMonth}
     onChange={(e) => setSelectedMonth(Number(e.target.value))}
-    className="px-4 py-2 rounded-lg border"
+    className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 py-2 rounded-lg border"
   >
     {[
       "January","February","March","April","May","June",
@@ -349,7 +349,7 @@ const sendNoteToCounselor = async (noteId) => {
   <select
     value={selectedYear}
     onChange={(e) => setSelectedYear(Number(e.target.value))}
-    className="px-4 py-2 rounded-lg border"
+    className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 py-2 rounded-lg border"
   >
     {[2023, 2024, 2025, 2026].map((y) => (
       <option key={y} value={y}>{y}</option>
