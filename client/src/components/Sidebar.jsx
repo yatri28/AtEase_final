@@ -24,6 +24,7 @@ export default function Sidebar({ role }) {
       { name: "Users",      path: "/admin/users",     icon: "👥" },
       { name: "Analytics",  path: "/admin/analytics", icon: "📊" },
       { name: "Reports",    path: "/admin/reports",   icon: "📄" },
+      { name: "Settings", path: "/admin/settings", icon: "⚙️" },
     ],
   };
 
