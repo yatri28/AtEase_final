@@ -5,9 +5,6 @@ import Note from "../models/Note.js";
 import bcrypt from "bcryptjs";
 import { Parser } from "json2csv";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PLATFORM STATS  (admin dashboard)
-// ─────────────────────────────────────────────────────────────────────────────
 export const getPlatformStats = async (req, res) => {
   try {
     const [totalStudents, totalCounselors, totalSessions, pendingSessions, moodData] =
@@ -15,7 +12,7 @@ export const getPlatformStats = async (req, res) => {
         User.countDocuments({ role: "student" }),
         User.countDocuments({ role: "counselor" }),
         Session.countDocuments(),
-        Session.countDocuments({ status: "pending" }),
+        Session.countDocuments({ status: "Pending" }),
         Mood.aggregate([
           {
             $addFields: {
@@ -39,10 +36,6 @@ export const getPlatformStats = async (req, res) => {
 
     const wellbeingIndex = moodData[0]?.avg?.toFixed(2) ?? null;
 
-    // Sessions trend (last 6 months)
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
     res.json({
       totalStudents,
       totalCounselors,
@@ -55,9 +48,6 @@ export const getPlatformStats = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MOOD SUMMARY  (pie chart on admin dashboard)
-// ─────────────────────────────────────────────────────────────────────────────
 export const getMoodSummary = async (req, res) => {
   try {
     const data = await Mood.aggregate([
@@ -70,9 +60,6 @@ export const getMoodSummary = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SESSION TREND  (bar chart on admin dashboard)
-// ─────────────────────────────────────────────────────────────────────────────
 export const getSessionTrend = async (req, res) => {
   try {
     const sixMonthsAgo = new Date();
@@ -106,9 +93,6 @@ export const getSessionTrend = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// USER CRUD
-// ─────────────────────────────────────────────────────────────────────────────
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select("-password").sort({ createdAt: -1 });
@@ -156,9 +140,6 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ANALYTICS
-// ─────────────────────────────────────────────────────────────────────────────
 export const getMoodByMonth = async (req, res) => {
   try {
     const year = parseInt(req.query.year) || new Date().getFullYear();
@@ -227,9 +208,6 @@ export const getDepartmentBreakdown = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// REPORTS (CSV download)
-// ─────────────────────────────────────────────────────────────────────────────
 const dateFilter = (query) => {
   const filter = {};
   if (query.startDate || query.endDate) {
@@ -254,6 +232,7 @@ export const downloadReport = async (req, res) => {
       const users = await User.find(filter).select("-password").lean();
       fields = ["_id", "name", "email", "role", "department", "year", "assignedYear", "createdAt"];
       data = users;
+
     } else if (type === "moods") {
       const filter = {};
       if (startDate || endDate) {
@@ -262,32 +241,34 @@ export const downloadReport = async (req, res) => {
         if (endDate)   filter.date.$lte = new Date(endDate);
       }
       const moods = await Mood.find(filter).lean();
-      fields = ["_id", "user", "moodType", "note", "date"];
+      fields = ["_id", "user", "moodType", "remarks", "date"];
       data = moods;
+
     } else if (type === "sessions") {
       const filter = dateFilter({ startDate, endDate });
       const sessions = await Session.find(filter)
-        .populate("student", "name email")
-        .populate("counselor", "name email")
+        .populate("studentId", "name email")
+        .populate("counselorId", "name email")
         .lean();
       data = sessions.map((s) => ({
         id: s._id,
-        studentName: s.student?.name || "",
-        studentEmail: s.student?.email || "",
-        counselorName: s.counselor?.name || "",
-        counselorEmail: s.counselor?.email || "",
-        date: s.date,
+        studentName: s.studentId?.name || "",
+        studentEmail: s.studentId?.email || "",
+        counselorName: s.counselorId?.name || "",
+        counselorEmail: s.counselorId?.email || "",
+        date: s.sessionDate,
+        time: s.sessionTime,
         status: s.status,
-        reason: s.reason || "",
         createdAt: s.createdAt,
       }));
-      fields = ["id","studentName","studentEmail","counselorName","counselorEmail","date","status","reason","createdAt"];
+      fields = ["id","studentName","studentEmail","counselorName","counselorEmail","date","time","status","createdAt"];
+
     } else if (type === "notes") {
       const filter = dateFilter({ startDate, endDate });
       const notes = await Note.find(filter).lean();
-      // Anonymised — no student identity
-      data = notes.map((n) => ({ id: n._id, content: n.content, createdAt: n.createdAt }));
+      data = notes.map((n) => ({ id: n._id, content: n.text, createdAt: n.createdAt }));
       fields = ["id", "content", "createdAt"];
+
     } else {
       return res.status(400).json({ message: "Invalid report type." });
     }
