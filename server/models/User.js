@@ -3,9 +3,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-
     email: { type: String, required: true, unique: true },
-
     password: { type: String, required: true },
 
     role: {
@@ -15,8 +13,15 @@ const userSchema = new mongoose.Schema(
     },
 
     department: { type: String },
-year: { type: Number },          // for students
-assignedYear: { type: Number }   // for counselors
+    year: { type: Number },
+    assignedYear: { type: Number },
+
+    // ✅ ADD THIS
+    settings: {
+      emailNotifications: { type: Boolean, default: true },
+      sessionReminders: { type: Boolean, default: true },
+      anonymousNotes: { type: Boolean, default: false },
+    }
   },
   { timestamps: true }
 );

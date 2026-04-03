@@ -106,17 +106,14 @@ export default function BookSession() {
       <p className="text-gray-500 mb-6">Schedule your next counselling appointment</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         {/* DATE SECTION */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
           <h2 className="font-semibold mb-2">Select Date</h2>
           <p className="text-gray-500 dark:text-gray-400 mb-4">{monthName} {currentYear}</p>
-
           <div className="grid grid-cols-7 gap-2 text-center text-sm">
             {["Su","Mo","Tu","We","Th","Fr","Sa"].map((d) => (
               <span key={d} className="text-gray-500 dark:text-gray-400">{d}</span>
             ))}
-
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const day = i + 1;
               const isPast = day < currentDay;
@@ -158,7 +155,6 @@ export default function BookSession() {
         {/* COUNSELOR SECTION */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm flex flex-col">
           <h2 className="font-semibold mb-4">Choose Counselor</h2>
-
           <div className="space-y-3 flex-1">
             {counselors.map((c) => (
               <div
@@ -197,10 +193,12 @@ export default function BookSession() {
             <div key={s._id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow border">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-semibold">{s.counselorId?.name}</p>
+                
+                  <p className="font-semibold">{s.counselorName}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {new Date(s.sessionDate).toDateString()} — {s.sessionTime}
                   </p>
+<p className="text-sm text-gray-400">{s.specialization}</p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                   s.status === "Pending" ? "bg-yellow-100 text-yellow-700" :

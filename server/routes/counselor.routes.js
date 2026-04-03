@@ -12,14 +12,12 @@ GET ASSIGNED COUNSELORS FOR A STUDENT
 */
 router.get("/", protect, async (req, res) => {
   try {
-    // Get logged in student
     const student = await User.findById(req.user.id);
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    // Find counselors with same department + assignedYear
     const counselorUsers = await User.find({
       role: "counselor",
       department: student.department,
@@ -32,7 +30,6 @@ router.get("/", protect, async (req, res) => {
 
     const counselors = [];
 
-    // Fetch counselor profiles
     for (const user of counselorUsers) {
       const profile = await Counselor.findOne({
         userId: user._id,
@@ -46,6 +43,76 @@ router.get("/", protect, async (req, res) => {
     }
 
     res.json(counselors);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/*
+========================================
+GET COUNSELOR PROFILE
+========================================
+*/
+router.get("/profile", protect, async (req, res) => {
+  try {
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Counselor not found" });
+    }
+
+    const counselor = await Counselor.findOne({
+      userId: req.user.id,
+    });
+
+    res.json({
+      name: user.name,
+      email: user.email,
+      department: user.department,
+      assignedYear: user.assignedYear,
+      specialization: counselor?.specialization || "General Counseling",
+      contactNumber: counselor?.contactNumber || "",
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/*
+========================================
+UPDATE COUNSELOR PROFILE
+========================================
+*/
+router.put("/profile", protect, async (req, res) => {
+  try {
+
+    const { name, specialization, contactNumber } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { name },
+      { returnDocument: "after" }
+    );
+
+    const counselor = await Counselor.findOneAndUpdate(
+      { userId: req.user.id },
+      { specialization, contactNumber },
+      { returnDocument: "after" }
+    );
+
+    res.json({
+      name: user.name,
+      email: user.email,
+      department: user.department,
+      assignedYear: user.assignedYear,
+      specialization: counselor?.specialization || "General Counseling",
+      contactNumber: counselor?.contactNumber || "",
+    });
 
   } catch (error) {
     console.error(error);

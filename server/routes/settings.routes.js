@@ -1,19 +1,24 @@
 import express from "express";
-import verifyToken from "../middleware/verifyToken.js";
+import { protect } from "../middleware/auth.js";
 import Settings from "../models/Settings.js";
 
 const router = express.Router();
 
 /* SAVE SETTINGS */
-router.post("/", verifyToken, async (req, res) => {
+router.post("/", protect, async (req, res) => {
   try {
+    const { emailReminder, sessionReminder, anonymousNotes } = req.body;
+
     const settings = await Settings.findOneAndUpdate(
-      { userId: req.user.id },
+      { userId: req.user._id },
       {
-        userId: req.user.id,   // ⭐ important fix
-        ...req.body,
+        userId: req.user._id,
+
+        ...(emailReminder !== undefined && { emailReminder }),
+        ...(sessionReminder !== undefined && { sessionReminder }),
+        ...(anonymousNotes !== undefined && { anonymousNotes }),
       },
-      { new: true, upsert: true }
+      { returnDocument: "after", upsert: true } // ✅ better option
     );
 
     res.json(settings);
@@ -24,9 +29,14 @@ router.post("/", verifyToken, async (req, res) => {
 });
 
 /* GET SETTINGS */
-router.get("/", verifyToken, async (req, res) => {
+router.get("/", protect, async (req, res) => {
   try {
-    const settings = await Settings.findOne({ userId: req.user.id });
+    let settings = await Settings.findOne({ userId: req.user._id });
+
+    if (!settings) {
+      settings = await Settings.create({ userId: req.user._id });
+    }
+
     res.json(settings);
   } catch (error) {
     console.log("FETCH SETTINGS ERROR:", error);
@@ -34,4 +44,29 @@ router.get("/", verifyToken, async (req, res) => {
   }
 });
 
+router.put("/toggle-reminder", protect, async (req, res) => {
+  let settings = await Settings.findOne({ userId: req.user._id });
+
+  if (!settings) {
+    settings = await Settings.create({ userId: req.user._id });
+  }
+
+  settings.sessionReminder = !settings.sessionReminder;
+  await settings.save();
+
+  res.json(settings);
+});
+
+router.put("/toggle-email-reminder", protect, async (req, res) => {
+  let settings = await Settings.findOne({ userId: req.user._id });
+
+  if (!settings) {
+    settings = await Settings.create({ userId: req.user._id });
+  }
+
+  settings.emailReminder = !settings.emailReminder;
+  await settings.save();
+
+  res.json(settings);
+});
 export default router;

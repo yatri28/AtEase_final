@@ -3,6 +3,7 @@ import Note from "../models/Note.js";
 import { sendNoteToCounselor } from "../controllers/note.controller.js";
 import verifyToken from "../middleware/verifyToken.js";
 
+
 const router = express.Router();
 
 router.post("/", async (req, res) => {
@@ -46,7 +47,7 @@ router.put("/:noteId", async (req, res) => {
     const updatedNote = await Note.findByIdAndUpdate(
       req.params.noteId,
       { text },
-      { new: true } // return updated document
+      { returnDocument: "after" } // return updated document
     );
     if (!updatedNote) return res.status(404).json({ message: "Note not found" });
     res.json(updatedNote);
@@ -68,4 +69,46 @@ router.delete("/:noteId", async (req, res) => {
   }
 });
 
+router.get("/counselor/all", verifyToken, async (req, res) => {
+  try {
+    const counselor = req.user;
+
+    // Fetch all sent notes with student details
+    const notes = await Note.find({ sentToCounselor: true })
+      .populate("studentId", "name email year department")
+      .sort({ createdAt: -1 });
+
+    // ✅ FILTER based on YOUR schema
+    const filteredNotes = notes.filter((note) => {
+      return (
+        note.studentId &&
+        note.studentId.department === counselor.department &&
+        note.studentId.year === counselor.assignedYear
+      );
+    });
+
+    // ✅ Format response
+    const formattedNotes = filteredNotes.map((note) => {
+      if (note.anonymous) {
+        return {
+          _id: note._id,
+          text: note.text,
+          studentName: "Anonymous",
+        };
+      } else {
+        return {
+          _id: note._id,
+          text: note.text,
+          studentName: note.studentId.name,
+          email: note.studentId.email,
+        };
+      }
+    });
+
+    res.json(formattedNotes);
+  } catch (error) {
+    console.log("FILTER NOTES ERROR:", error);
+    res.status(500).json({ message: "Error fetching notes" });
+  }
+});
 export default router;

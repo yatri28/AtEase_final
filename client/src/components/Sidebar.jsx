@@ -29,12 +29,14 @@ export default function Sidebar({ role }) {
 
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
+useEffect(() => {
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    // Wrap in a function to defer state update
+    const userData = JSON.parse(storedUser);
+    setTimeout(() => setUser(userData), 0);
+  }
+}, []);
 
   // ✅ Logout Function
   const handleLogout = () => {

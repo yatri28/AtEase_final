@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import NotificationBell from "../../components/NotificationBell";
 import {
   ScatterChart,
   Scatter,
@@ -83,98 +84,122 @@ export default function CounselorDashboard() {
 
   return (
     <DashboardLayout role="counselor">
+      <div className="flex items-center justify-between mb-6">
       <h1 className="text-2xl font-bold mb-4">
         Student Mood Analysis — {months[selectedMonth]} {year}
       </h1>
-
-      {/* Month Tabs */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {months.map((month, index) => (
-          <button
-            key={index}
-            onClick={() => setSelectedMonth(index)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-              selectedMonth === index
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 hover:bg-gray-200"
-            }`}
-          >
-            {month}
-          </button>
-        ))}
+      <NotificationBell />
       </div>
 
-      {/* Chart Section */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm">
-        {loading ? (
-          <p className="text-center text-gray-500">Loading data...</p>
-        ) : data.length === 0 ? (
-          <p className="text-center text-gray-500">
-            No mood data available for this month.
-          </p>
-        ) : (
-          <ResponsiveContainer width="100%" height={420}>
-            <ScatterChart>
-              <CartesianGrid strokeDasharray="3 3" />
+{/* Month Tabs */}
+<div className="flex gap-2 mb-6 flex-wrap text-gray-500 dark:text-gray-400">
+  {months.map((month, index) => (
+    <button
+      key={index}
+      onClick={() => setSelectedMonth(index)}
+      className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+        selectedMonth === index
+          ? "bg-teal-600 text-white"
+          : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+      }`}
+    >
+      {month}
+    </button>
+  ))}
+</div>
 
-              {/* X Axis: Month Only */}
-              <XAxis
-                type="number"
-                dataKey="x"
-                domain={[-4, 4]}
-                tick={false}
-                label={{
-                  value: months[selectedMonth],
-                  position: "insideBottom",
-                  offset: -5
-                }}
-              />
+{/* Chart Section */}
+<div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
+  {loading ? (
+    <p className="text-center text-gray-500 dark:text-gray-400">
+      Loading data...
+    </p>
+  ) : data.length === 0 ? (
+    <p className="text-center text-gray-500 dark:text-gray-400">
+      No mood data available for this month.
+    </p>
+  ) : (
+    <ResponsiveContainer width="100%" height={420}>
+      <ScatterChart>
+        {/* Grid */}
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke="#e5e7eb"
+          className="dark:stroke-gray-600"
+        />
 
-              {/* Y Axis: Mood Levels */}
-              <YAxis
-                type="number"
-                dataKey="y"
-                domain={[0.5, 5.5]}
-                ticks={[1,2,3,4,5]}
-                tickFormatter={(value) =>
-                  ({
-                    1: "Stressed",
-                    2: "Sad",
-                    3: "Neutral",
-                    4: "Calm",
-                    5: "Happy"
-                  }[value])
-                }
-              />
+        {/* X Axis */}
+        <XAxis
+          type="number"
+          dataKey="x"
+          domain={[-4, 4]}
+          tick={false}
+          axisLine={{ stroke: "#9ca3af" }}
+          tickLine={false}
+          label={{
+            value: months[selectedMonth],
+            position: "insideBottom",
+            offset: -5,
+            fill: "#6b7280"
+          }}
+        />
 
-              <Tooltip
-                formatter={(value, name, props) => {
-                  const moodMap = {
-                    1: "Stressed",
-                    2: "Sad",
-                    3: "Neutral",
-                    4: "Calm",
-                    5: "Happy"
-                  };
-                  return [`Mood: ${moodMap[props.payload.y]}`];
-                }}
-              />
+        {/* Y Axis */}
+        <YAxis
+          type="number"
+          dataKey="y"
+          domain={[0.5, 5.5]}
+          ticks={[1, 2, 3, 4, 5]}
+          axisLine={{ stroke: "#9ca3af" }}
+          tickLine={false}
+          tick={{ fill: "#6b7280" }}
+          tickFormatter={(value) =>
+            ({
+              1: "Stressed",
+              2: "Sad",
+              3: "Neutral",
+              4: "Calm",
+              5: "Happy",
+            }[value])
+          }
+        />
 
-              {/* Emotional Zones */}
-              <ReferenceArea y1={0.5} y2={1.5} fill="#fecaca" fillOpacity={0.3} />
-              <ReferenceArea y1={1.5} y2={2.5} fill="#fed7aa" fillOpacity={0.3} />
-              <ReferenceArea y1={2.5} y2={3.5} fill="#e5e7eb" fillOpacity={0.3} />
-              <ReferenceArea y1={3.5} y2={4.5} fill="#bbf7d0" fillOpacity={0.3} />
-              <ReferenceArea y1={4.5} y2={5.5} fill="#86efac" fillOpacity={0.3} />
+        {/* Tooltip */}
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "#ffffff",
+            border: "1px solid #e5e7eb",
+            borderRadius: "10px"
+          }}
+          wrapperClassName="dark:!bg-gray-700 dark:!border-gray-600"
+          formatter={(value, name, props) => {
+            const moodMap = {
+              1: "Stressed",
+              2: "Sad",
+              3: "Neutral",
+              4: "Calm",
+              5: "Happy",
+            };
+            return [`Mood: ${moodMap[props.payload.y]}`];
+          }}
+        />
 
-              <Scatter data={data} fill="#14b8a6" />
-            </ScatterChart>
-          </ResponsiveContainer>
-        )}
-      </div>
+        {/* Emotional Zones */}
+        <ReferenceArea y1={0.5} y2={1.5} fill="#ef4444" fillOpacity={0.15} />
+        <ReferenceArea y1={1.5} y2={2.5} fill="#f97316" fillOpacity={0.15} />
+        <ReferenceArea y1={2.5} y2={3.5} fill="#9ca3af" fillOpacity={0.15} />
+        <ReferenceArea y1={3.5} y2={4.5} fill="#22c55e" fillOpacity={0.15} />
+        <ReferenceArea y1={4.5} y2={5.5} fill="#16a34a" fillOpacity={0.15} />
+
+        {/* Data Points */}
+        <Scatter data={data} fill="#14b8a6" />
+      </ScatterChart>
+    </ResponsiveContainer>
+  )}
+</div>
 
       {/* Faculty Insights Section */}
-      <div className="mt-8 bg-white p-6 rounded-2xl shadow-sm">
+      <div className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
         <h2 className="text-lg font-semibold mb-4">Faculty Insights</h2>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-sm">
@@ -212,8 +237,8 @@ export default function CounselorDashboard() {
 
 function InsightCard({ title, value }) {
   return (
-    <div className="p-4 rounded-xl bg-gray-50 border">
-      <p className="text-gray-500">{title}</p>
+    <div className="p-4 bg-white dark:bg-gray-800 rounded-xl bg-gray-50 border">
+      <p className="text-gray-500 dark:text-gray-400">{title}</p>
       <p className="text-xl font-bold mt-1">{value}</p>
     </div>
   );

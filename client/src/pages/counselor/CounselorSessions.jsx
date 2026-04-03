@@ -7,6 +7,10 @@ export default function CounselorSessions() {
 
   const token = localStorage.getItem("token");
 
+   useEffect(() => {
+    fetchSessions();
+  }, []);
+ 
   const fetchSessions = async () => {
     try {
       const res = await fetch(
@@ -21,15 +25,13 @@ export default function CounselorSessions() {
       const data = await res.json();
       setSessions(data);
     } catch (err) {
-      console.error("Error fetching sessions");
+      console.error("Error fetching sessions",err);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchSessions();
-  }, []);
+
 
   const updateStatus = async (id, action) => {
     await fetch(
@@ -61,17 +63,17 @@ export default function CounselorSessions() {
         {sessions.map((s) => (
           <div
             key={s._id}
-            className="bg-white p-4 rounded-xl shadow border"
+            className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow border"
           >
             <div className="flex justify-between">
               <div>
                 <p className="font-semibold">
                   {s.studentId?.name}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   {new Date(s.sessionDate).toDateString()} — {s.sessionTime}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Dept: {s.studentId?.department} | Year: {s.studentId?.year}
                 </p>
               </div>

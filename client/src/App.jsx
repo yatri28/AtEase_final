@@ -4,15 +4,22 @@ import StudentDashboard from "./pages/student/Dashboard";
 import BookSession from "./pages/student/BookSession";
 import Messages from "./pages/student/Messages";
 import Profile from "./pages/student/Profile";
-import StudentSettings from "./pages/student/Settings";      // renamed
+import StudentSettings from "./pages/student/Settings";
+
 import CounselorDashboard from "./pages/counselor/Dashboard";
-import { Toaster } from "react-hot-toast";
 import CounselorSessions from "./pages/counselor/CounselorSessions";
+import CounselorSettings from "./pages/counselor/Settings";
+import CounselorNotes from "./pages/counselor/CounselorNotes";
 import CounselorMessages from "./pages/counselor/CounselorMessages";
+
+import SessionPage from "./pages/SessionPage";
+
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminReports from "./pages/admin/AdminReports";
+
+import { Toaster } from "react-hot-toast";
 
 export default function App() {
   return (
@@ -27,11 +34,14 @@ export default function App() {
         <Route path="/student/settings" element={<StudentSettings />} />
         <Route path="/student/book" element={<BookSession />} />
         <Route path="/student/messages" element={<Messages />} />
+        <Route path="/session/:id" element={<SessionPage />} />
 
         {/* Counselor */}
         <Route path="/counselor" element={<CounselorDashboard />} />
         <Route path="/counselor/sessions" element={<CounselorSessions />} />
         <Route path="/counselor/messages" element={<CounselorMessages />} />
+        <Route path="/counselor/settings" element={<CounselorSettings />} />
+        <Route path="/counselor/notes" element={<CounselorNotes />} />
 
         {/* Admin */}
         <Route path="/admin" element={<AdminDashboard />} />

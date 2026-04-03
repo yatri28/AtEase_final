@@ -9,11 +9,11 @@ export default function Settings() {
   const { darkMode, setDarkMode } = useContext(ThemeContext);
 
   // Local copy of settings for editing
-  const [localSettings, setLocalSettings] = useState({
-    emailNotifications: true,
-    sessionReminders: true,
-    anonymousNotes: false,
-  });
+const [localSettings, setLocalSettings] = useState({
+  emailReminder: false,
+  sessionReminder: false,
+  anonymousNotes: false,
+});
 
   // Sync local settings with backend settings safely
 useEffect(() => {
@@ -72,15 +72,15 @@ useEffect(() => {
         <Section title="Notifications" desc="Control how we notify you">
           <Toggle
             label="Email Notifications"
-            desc="Receive important updates via email"
-            checked={localSettings.emailNotifications}
-            onChange={() => toggleSetting("emailNotifications")}
+            desc="Receive session reminders via email"
+            checked={localSettings.emailReminder}
+            onChange={() => toggleSetting("emailReminder")}
           />
           <Toggle
             label="Session Reminders"
-            desc="Get reminders before scheduled sessions"
-            checked={localSettings.sessionReminders}
-            onChange={() => toggleSetting("sessionReminders")}
+            desc="Get in-app reminders before sessions"
+            checked={localSettings.sessionReminder}
+            onChange={() => toggleSetting("sessionReminder")}
           />
         </Section>
 

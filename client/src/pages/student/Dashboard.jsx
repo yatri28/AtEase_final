@@ -3,7 +3,7 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 import { SettingsContext } from "../../context/SettingsContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import NotificationBell from "../../components/NotificationBell";
 
 import {
   LineChart,
@@ -272,17 +272,25 @@ const sendNoteToCounselor = async (noteId) => {
   /* ================= UI ================= */
   return (
     <DashboardLayout role="student">
-      <p className="text-teal-500 text-sm font-medium mb-1">
-        ✨ You are stronger than you think.
-      </p>
+      <div className="flex justify-between items-center mb-4">
+  <div>
+    <p className="text-teal-500 text-sm font-medium mb-1">
+      ✨ You are stronger than you think.
+    </p>
 
-      <h1 className="text-2xl font-bold mb-1">
-        Hello, {loggedUser?.name} 👋
-      </h1>
+    <h1 className="text-2xl font-bold">
+      Hello, {loggedUser?.name} 👋
+    </h1>
 
-      <p className="text-gray-500 dark:text-gray-400 mb-6">
-        Here’s a quick look at your wellness journey
-      </p>
+    <p className="text-gray-500 dark:text-gray-400">
+      Here’s a quick look at your wellness journey
+    </p>
+  </div>
+
+    {/* 🔔 Notification Bell on right */}
+    <NotificationBell userId={loggedUser._id.toString()} />
+  </div>
+
 
       {/* STATS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -472,17 +480,17 @@ const sendNoteToCounselor = async (noteId) => {
                       Delete
                     </button>
                       {settings?.anonymousNotes && (
-                    <button
-                   onClick={() => sendNoteToCounselor(note._id)}
-                      disabled={note.sentToCounselor}
-                      className={`text-sm px-2 py-1 rounded-md ${
-                          note.sentToCounselor
-                       ? "bg-gray-300 cursor-not-allowed"
-                         : "border border-teal-400 text-teal-500 hover:bg-teal-50"
+                      <button
+                          onClick={() => sendNoteToCounselor(note._id)}
+                          disabled={note.sentToCounselor}
+                          className={`text-sm px-2 py-1 rounded-md ${
+                            note.sentToCounselor
+                              ? "bg-gray-300 cursor-not-allowed"
+                              : "border border-teal-400 text-teal-500 hover:bg-teal-50"
                           }`}
-                           >
-                        {note.sentToCounselor ? "Sent" : "Send to Counselor"}
-                       </button>
+                        >
+                          {note.sentToCounselor ? "Sent" : "Send to Counselor"}
+                        </button>
                          )}
                   </div>
                 </>
