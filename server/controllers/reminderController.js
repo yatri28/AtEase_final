@@ -1,6 +1,7 @@
 import Notification from "../models/Notification.js";
 import Session from "../models/Session.js";
 import { sendEmail } from "../utils/sendEmail.js";
+import User from "../models/User.js";
 import { io } from "../index.js";
 
 export const sendSessionReminders = async () => {
@@ -8,6 +9,8 @@ export const sendSessionReminders = async () => {
     const now = new Date();
     const oneHour = 60 * 60 * 1000;
     const oneDay = 24 * oneHour;
+
+    const admins = await User.find({ role: "admin" });
 
     const sessions = await Session.find({ approved: true })
       .populate("studentId")
@@ -35,6 +38,19 @@ export const sendSessionReminders = async () => {
         const counselorNotif = await Notification.create({ userId: session.counselorId._id, message: counselorMessage });
         io.to(`notification-${session.counselorId.userId._id}`).emit("newNotification", counselorNotif);
 
+        for (const admin of admins) {
+          const adminNotif = await Notification.create({
+            userId: admin._id,
+            message: adminMessage,
+          });
+
+          io.to(`notification-${admin._id}`).emit("newNotification", adminNotif);
+
+          if (admin.email) {
+            await sendEmail(admin.email, "Session Reminder", adminMessage);
+          }
+        }
+
         if (session.studentId.email) await sendEmail(session.studentId.email, "Session Reminder", studentMessage);
         if (session.counselorId.userId?.email) await sendEmail(session.counselorId.userId.email, "Session Reminder", counselorMessage);
 
@@ -52,6 +68,19 @@ export const sendSessionReminders = async () => {
 
         const counselorNotif = await Notification.create({ userId: session.counselorId._id, message: counselorMessage });
         io.to(`notification-${session.counselorId.userId._id}`).emit("newNotification", counselorNotif);
+
+         for (const admin of admins) {
+          const adminNotif = await Notification.create({
+            userId: admin._id,
+            message: adminMessage,
+          });
+
+          io.to(`notification-${admin._id}`).emit("newNotification", adminNotif);
+
+          if (admin.email) {
+            await sendEmail(admin.email, "Session Starting Soon", adminMessage);
+          }
+        }
 
         if (session.studentId.email) await sendEmail(session.studentId.email, "Session Reminder", studentMessage);
         if (session.counselorId.userId?.email) await sendEmail(session.counselorId.userId.email, "Session Reminder", counselorMessage);

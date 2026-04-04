@@ -25,7 +25,7 @@ import { Toaster } from "react-hot-toast";
 export default function App() {
   return (
     <BrowserRouter>
-      <Toaster />
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<Auth />} />
 

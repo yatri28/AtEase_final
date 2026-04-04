@@ -8,32 +8,41 @@ export default function Settings() {
   const { settings, updateSettings } = useContext(SettingsContext);
   const { darkMode, setDarkMode } = useContext(ThemeContext);
 
-  // Local copy of settings for editing
-const [localSettings, setLocalSettings] = useState({
-  emailReminder: false,
-  sessionReminder: false,
-  anonymousNotes: false,
-});
+  // Local settings
+  const [localSettings, setLocalSettings] = useState({
+    emailReminder: false,
+    sessionReminder: false,
+    anonymousNotes: false,
+  });
 
-  // Sync local settings with backend settings safely
-useEffect(() => {
-  if (!settings) return;
+  // Local dark mode (IMPORTANT)
+  const [localDarkMode, setLocalDarkMode] = useState(darkMode);
 
-  // Wrap setState inside a micro-task
-  const syncSettings = () => {
-    setLocalSettings((prev) => ({
-      ...prev,
-      ...settings,
-    }));
-  };
+  // Sync backend settings
+  useEffect(() => {
+    if (!settings) return;
 
-  // Schedule it after the current render
-  Promise.resolve().then(syncSettings);
-}, [settings]);
+    Promise.resolve().then(() => {
+      setLocalSettings((prev) => ({
+        ...prev,
+        ...settings,
+      }));
+    });
+  }, [settings]);
 
-  // Check if any changes were made
+  // Sync dark mode
+  useEffect(() => {
+    setLocalDarkMode(darkMode);
+  }, [darkMode]);
+
+  // Check changes (settings + dark mode)
   const hasChanges =
-    JSON.stringify(localSettings) !== JSON.stringify(settings);
+  settings
+    ? localSettings.emailReminder !== settings.emailReminder ||
+      localSettings.sessionReminder !== settings.sessionReminder ||
+      localSettings.anonymousNotes !== settings.anonymousNotes ||
+      localDarkMode !== darkMode
+    : false;
 
   const toggleSetting = (key) => {
     setLocalSettings((prev) => ({
@@ -43,15 +52,20 @@ useEffect(() => {
   };
 
   const handleSave = async () => {
-    try {
-      await updateSettings(localSettings);
-      toast.success("Settings saved successfully");
-    } catch{
-      toast.error("Failed to save settings");
-    }
-  };
+  if (!hasChanges) return;
 
-  // Loading fallback
+  try {
+    await updateSettings(localSettings);
+    setDarkMode(localDarkMode);
+
+    toast.success("Settings saved successfully");
+  } catch {
+    toast.error("Failed to save settings");
+  }
+};
+
+
+  // Loading state
   if (!settings) {
     return (
       <DashboardLayout role="student">
@@ -68,6 +82,7 @@ useEffect(() => {
       </p>
 
       <div className="space-y-6 max-w-3xl">
+
         {/* Notifications */}
         <Section title="Notifications" desc="Control how we notify you">
           <Toggle
@@ -99,31 +114,32 @@ useEffect(() => {
           <Toggle
             label="Dark Mode"
             desc="Reduce eye strain in low-light environments"
-            checked={darkMode}
-            onChange={() => setDarkMode(!darkMode)}
+            checked={localDarkMode}
+            onChange={() => setLocalDarkMode(!localDarkMode)}
           />
         </Section>
 
         {/* Save Button */}
         <div className="flex justify-end">
           <button
-            disabled={!hasChanges}
-            onClick={handleSave}
-            className={`px-6 py-2 rounded-lg text-white transition ${
-              hasChanges
-                ? "bg-teal-500 hover:bg-teal-600"
-                : "bg-gray-300 cursor-not-allowed"
-            }`}
-          >
-            Save Changes
-          </button>
+          disabled={!hasChanges}
+          onClick={handleSave}
+          className={`px-6 py-2 rounded-lg text-white transition ${
+            hasChanges
+              ? "bg-teal-500 hover:bg-teal-600"
+              : "bg-gray-300 cursor-not-allowed"
+          }`}
+        >
+          Save Changes
+        </button>
         </div>
+
       </div>
     </DashboardLayout>
   );
 }
 
-/* ---------- Section Component ---------- */
+/* ---------- Section ---------- */
 function Section({ title, desc, children }) {
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
@@ -138,13 +154,15 @@ function Section({ title, desc, children }) {
   );
 }
 
-/* ---------- Toggle Component ---------- */
+/* ---------- Toggle ---------- */
 function Toggle({ label, desc, checked, onChange }) {
   return (
     <div className="flex items-center justify-between">
       <div>
         <p className="font-medium">{label}</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{desc}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {desc}
+        </p>
       </div>
 
       <button

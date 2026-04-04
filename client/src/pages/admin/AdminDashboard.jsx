@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import DashboardLayout from "../../layouts/DashboardLayout";
+import AdminNotificationBell from "../../components/AdminNotificationBell";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend
@@ -63,10 +64,24 @@ export default function AdminDashboard() {
     <DashboardLayout role="admin">
       <div className="space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Admin Dashboard</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Platform overview & analytics</p>
-        </div>
+        <div className="flex items-center justify-between">
+  
+  {/* Left Side - Title */}
+  <div>
+    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+      Admin Dashboard
+    </h1>
+    <p className="text-gray-500 dark:text-gray-400 mt-1">
+      Platform overview & analytics
+    </p>
+  </div>
+
+  {/* Right Side - Notification Bell */}
+  <div className="flex items-center gap-4">
+    <AdminNotificationBell />
+  </div>
+
+</div>
 
         {/* Stat Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
