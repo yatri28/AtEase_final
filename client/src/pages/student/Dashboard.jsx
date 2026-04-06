@@ -35,6 +35,7 @@ export default function StudentDashboard() {
   const [monthlyMoods, setMonthlyMoods] = useState([]);
   const [todayMoodId, setTodayMoodId] = useState(null);
   const [selectedMood, setSelectedMood] = useState(null);
+  const [sessions, setSessions]         = useState([]);
 
 
   const moods = [
@@ -105,16 +106,21 @@ useEffect(() => {
 
   const fetchData = async () => {
     try {
-      // Fetch notes
-      const res = await fetch(
-        `http://localhost:5000/api/notes/${studentId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const data = await res.json();
-      setNotes(data);
+      const [notesRes, sessionsRes] = await Promise.all([
+        fetch(`http://localhost:5000/api/notes/${studentId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("http://localhost:5000/api/sessions/student", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-      // Fetch moods
-      await fetchMonthlyMoods(); // ✅ safe call
+      const notesData    = await notesRes.json();
+      const sessionsData = await sessionsRes.json();
+
+      setNotes(notesData);
+      setSessions(Array.isArray(sessionsData) ? sessionsData : []);
+      await fetchMonthlyMoods();
     } catch (err) {
       console.log(err);
     }
@@ -269,6 +275,21 @@ const sendNoteToCounselor = async (noteId) => {
   }
 };
 
+  /* ================= SESSION HELPERS ================= */
+  const now = new Date();
+
+  const nextSession = sessions
+    .filter((s) => s.status === "Approved" && new Date(s.sessionDate) >= now)
+    .sort((a, b) => new Date(a.sessionDate) - new Date(b.sessionDate))[0];
+
+  const nextSessionLabel = nextSession
+    ? `${new Date(nextSession.sessionDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })} ${nextSession.sessionTime}`
+    : "Not Scheduled";
+
+  const attendedCount = sessions.filter(
+    (s) => s.status === "Approved" && new Date(s.sessionDate) < now
+  ).length;
+
   /* ================= UI ================= */
   return (
     <DashboardLayout role="student">
@@ -294,8 +315,8 @@ const sendNoteToCounselor = async (noteId) => {
 
       {/* STATS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <StatCard title="Next Session" value="Not Scheduled" icon="📅" color="bg-teal-100" />
-        <StatCard title="Sessions Attended" value="0" icon="⏰" color="bg-purple-100" />
+        <StatCard title="Next Session" value={nextSessionLabel} icon="📅" color="bg-teal-100" />
+        <StatCard title="Sessions Attended" value={attendedCount} icon="⏰" color="bg-purple-100" />
         <StatCard title="Mood Streak" value={`${calculateStreak()} Days`} icon="📈" color="bg-yellow-100" />
         <StatCard title="Notes" value={notes.length} icon="💬" color="bg-blue-100" />
       </div>
@@ -374,15 +395,34 @@ const sendNoteToCounselor = async (noteId) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
           <h2 className="font-semibold mb-2">Upcoming Session</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
-            You don’t have any sessions scheduled.
-          </p>
-          <button
-            onClick={() => navigate("/student/book")}
-            className="mt-4 px-5 py-2 bg-teal-500 text-white rounded-lg"
-          >
-            Book a Session
-          </button>
+          {nextSession ? (
+            <div className="mt-2 space-y-1">
+              <p className="font-medium text-teal-600 dark:text-teal-400">
+                {nextSession.counselorName}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                📅 {new Date(nextSession.sessionDate).toDateString()}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                🕐 {nextSession.sessionTime}
+              </p>
+              <span className="inline-block mt-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                Approved
+              </span>
+            </div>
+          ) : (
+            <>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                You don’t have any sessions scheduled.
+              </p>
+              <button
+                onClick={() => navigate("/student/book")}
+                className="mt-4 px-5 py-2 bg-teal-500 text-white rounded-lg"
+              >
+                Book a Session
+              </button>
+            </>
+          )}
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">

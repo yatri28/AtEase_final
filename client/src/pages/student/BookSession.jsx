@@ -10,12 +10,17 @@ export default function BookSession() {
   const [loading, setLoading] = useState(false);
 
   const today = new Date();
+  today.setHours(0,0,0,0); // ⭐ normalize time
+
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
   const currentDay = today.getDate();
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const monthName = today.toLocaleString("default", { month: "long" });
+
+  // ⭐ NEW: find which day month starts on
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
 
   const times = ["9:00 AM", "10:00 AM", "11:00 AM", "2:00 PM", "3:00 PM", "4:00 PM"];
 
@@ -86,12 +91,11 @@ export default function BookSession() {
 
       alert("Session request sent successfully!");
 
-      // reset selection
       setSelectedDate(null);
       setSelectedTime(null);
       setSelectedCounselor(null);
 
-      fetchSessions(); // refresh list
+      fetchSessions();
     } catch (err) {
       console.error(err.message);
       alert("Error booking session: " + err.message);
@@ -106,17 +110,29 @@ export default function BookSession() {
       <p className="text-gray-500 mb-6">Schedule your next counselling appointment</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
         {/* DATE SECTION */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
           <h2 className="font-semibold mb-2">Select Date</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">{monthName} {currentYear}</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
+            {monthName} {currentYear}
+          </p>
+
           <div className="grid grid-cols-7 gap-2 text-center text-sm">
             {["Su","Mo","Tu","We","Th","Fr","Sa"].map((d) => (
               <span key={d} className="text-gray-500 dark:text-gray-400">{d}</span>
             ))}
+
+            {/* ⭐ EMPTY SPACES BEFORE MONTH START */}
+            {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+              <span key={"empty-" + i}></span>
+            ))}
+
+            {/* ⭐ ACTUAL DAYS */}
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const day = i + 1;
               const isPast = day < currentDay;
+
               return (
                 <button
                   key={day}
@@ -180,7 +196,7 @@ export default function BookSession() {
         </div>
       </div>
 
-      {/* ================= MY SESSIONS LIST ================= */}
+      {/* MY SESSIONS */}
       <div className="mt-12">
         <h2 className="text-xl font-bold mb-4">My Sessions</h2>
 
@@ -193,13 +209,13 @@ export default function BookSession() {
             <div key={s._id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow border">
               <div className="flex justify-between items-center">
                 <div>
-                
                   <p className="font-semibold">{s.counselorName}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {new Date(s.sessionDate).toDateString()} — {s.sessionTime}
                   </p>
-<p className="text-sm text-gray-400">{s.specialization}</p>
+                  <p className="text-sm text-gray-400">{s.specialization}</p>
                 </div>
+
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                   s.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
                   s.status === "Approved" ? "bg-green-100 text-green-700" :

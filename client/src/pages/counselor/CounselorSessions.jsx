@@ -4,59 +4,62 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 export default function CounselorSessions() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(null); // tracks which session is being updated
 
   const token = localStorage.getItem("token");
 
-   useEffect(() => {
+  useEffect(() => {
     fetchSessions();
   }, []);
- 
+
   const fetchSessions = async () => {
     try {
-      const res = await fetch(
-        "http://localhost:5000/api/sessions/counselor",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+      const res = await fetch("http://localhost:5000/api/sessions/counselor", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
       setSessions(data);
     } catch (err) {
-      console.error("Error fetching sessions",err);
+      console.error("Error fetching sessions", err);
     } finally {
       setLoading(false);
     }
   };
 
-
-
   const updateStatus = async (id, action) => {
-    await fetch(
-      `http://localhost:5000/api/sessions/${action}/${id}`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+    setUpdating(id); // show loading on this specific card
+
+    // ✅ Optimistic update — immediately reflect the change in UI
+    const newStatus = action === "approve" ? "Approved" : "Cancelled";
+    setSessions((prev) =>
+      prev.map((s) => (s._id === id ? { ...s, status: newStatus } : s))
     );
 
-    fetchSessions();
+    try {
+      await fetch(`http://localhost:5000/api/sessions/${action}/${id}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // ✅ Re-fetch to sync with server (in case of any side effects)
+      await fetchSessions();
+    } catch (err) {
+      console.error("Error updating session", err);
+      // Revert optimistic update on failure
+      await fetchSessions();
+    } finally {
+      setUpdating(null);
+    }
   };
 
   return (
     <DashboardLayout role="counselor">
-      <h1 className="text-2xl font-bold mb-6">
-        Session Requests
-      </h1>
+      <h1 className="text-2xl font-bold mb-6">Session Requests</h1>
 
       {loading && <p>Loading...</p>}
 
       {!loading && sessions.length === 0 && (
-        <p>No session requests yet.</p>
+        <p className="text-gray-500 dark:text-gray-400">No session requests yet.</p>
       )}
 
       <div className="space-y-4">
@@ -67,9 +70,7 @@ export default function CounselorSessions() {
           >
             <div className="flex justify-between">
               <div>
-                <p className="font-semibold">
-                  {s.studentId?.name}
-                </p>
+                <p className="font-semibold">{s.studentId?.name}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {new Date(s.sessionDate).toDateString()} — {s.sessionTime}
                 </p>
@@ -94,21 +95,19 @@ export default function CounselorSessions() {
                 {s.status === "Pending" && (
                   <div className="mt-2 space-x-2">
                     <button
-                      onClick={() =>
-                        updateStatus(s._id, "approve")
-                      }
-                      className="bg-green-500 text-white px-3 py-1 rounded"
+                      onClick={() => updateStatus(s._id, "approve")}
+                      disabled={updating === s._id}
+                      className="bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white px-3 py-1 rounded transition-opacity"
                     >
-                      Approve
+                      {updating === s._id ? "..." : "Approve"}
                     </button>
 
                     <button
-                      onClick={() =>
-                        updateStatus(s._id, "cancel")
-                      }
-                      className="bg-red-500 text-white px-3 py-1 rounded"
+                      onClick={() => updateStatus(s._id, "cancel")}
+                      disabled={updating === s._id}
+                      className="bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white px-3 py-1 rounded transition-opacity"
                     >
-                      Decline
+                      {updating === s._id ? "..." : "Decline"}
                     </button>
                   </div>
                 )}
