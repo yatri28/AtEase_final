@@ -11,6 +11,7 @@ import CounselorSessions from "./pages/counselor/CounselorSessions";
 import CounselorSettings from "./pages/counselor/Settings";
 import CounselorNotes from "./pages/counselor/CounselorNotes";
 import CounselorMessages from "./pages/counselor/CounselorMessages";
+import CounselorProfile from "./pages/counselor/Profile";
 
 import SessionPage from "./pages/SessionPage";
 
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/counselor/messages" element={<CounselorMessages />} />
         <Route path="/counselor/settings" element={<CounselorSettings />} />
         <Route path="/counselor/notes" element={<CounselorNotes />} />
+        <Route path="/counselor/profile" element={<CounselorProfile />} />
 
         {/* Admin */}
         <Route path="/admin" element={<AdminDashboard />} />

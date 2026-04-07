@@ -18,6 +18,7 @@ export default function Sidebar({ role }) {
       { name: "Messages", path: "/counselor/messages", icon: "💬" },
       { name: "Sessions", path: "/counselor/sessions", icon: "📆" },
       { name: "Settings", path: "/counselor/settings", icon: "⚙️" },
+      { name: "Profile", path: "/counselor/profile", icon: "👤" },
     ],
     admin: [
          { name: "Dashboard",  path: "/admin",           icon: "🏠" },

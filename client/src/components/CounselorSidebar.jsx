@@ -22,10 +22,11 @@ useEffect(() => {
 
   const menus = [
     { name: "Dashboard", path: "/counselor", icon: "📊" },
-    { name: "Session Requests", path: "/counselor/requests", icon: "📥" },
+    { name: "Sessions", path: "/counselor/sessions", icon: "📥" },
     { name: "Messages", path: "/counselor/messages", icon: "💬" },
     { name: "Session Notes", path: "/counselor/notes", icon: "📝" },
-    { name: "Session History", path: "/counselor/history", icon: "📆" },
+    { name: "Settings", path: "/counselor/settings", icon: "⚙️" },
+    { name: "Profile", path: "/counselor/profile", icon: "👤" },
   ];
 
   return (
