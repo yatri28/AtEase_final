@@ -42,7 +42,7 @@ export default function AdminReports() {
     role: "all",
   });
 
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const downloadReport = async (type) => {
     try {

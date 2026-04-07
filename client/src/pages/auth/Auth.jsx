@@ -68,8 +68,8 @@ export default function Auth() {
       }
 
       if (mode === "login") {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        sessionStorage.setItem("token", data.token);
+        sessionStorage.setItem("user", JSON.stringify(data.user));
 
         if (data.user.role === "student") navigate("/student");
         if (data.user.role === "counselor") navigate("/counselor");

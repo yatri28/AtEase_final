@@ -19,9 +19,9 @@ export default function StudentDashboard() {
   const { settings } = useContext(SettingsContext);
   const navigate = useNavigate();
 
-  const loggedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const loggedUser = JSON.parse(sessionStorage.getItem("user") || "{}");
   const studentId = loggedUser?._id;
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const [notes, setNotes] = useState([]);
   const [noteText, setNoteText] = useState("");

@@ -31,7 +31,7 @@ export default function Sidebar({ role }) {
   const [user, setUser] = useState(null);
 
 useEffect(() => {
-  const storedUser = localStorage.getItem("user");
+  const storedUser = sessionStorage.getItem("user");
   if (storedUser) {
     // Wrap in a function to defer state update
     const userData = JSON.parse(storedUser);
@@ -41,8 +41,8 @@ useEffect(() => {
 
   // ✅ Logout Function
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
     navigate("/");
   };
 

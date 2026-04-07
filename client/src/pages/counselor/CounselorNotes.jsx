@@ -6,7 +6,7 @@ export default function CounselorNotes() {
   const [notes, setNotes] = useState(null); // null = loading
   const [error, setError] = useState(null);
 
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   useEffect(() => {
     const fetchNotes = async () => {

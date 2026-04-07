@@ -23,7 +23,7 @@ export default function Settings() {
   // ✅ Local dark mode (IMPORTANT)
   const [localDarkMode, setLocalDarkMode] = useState(darkMode);
 
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   // Fetch settings
   useEffect(() => {

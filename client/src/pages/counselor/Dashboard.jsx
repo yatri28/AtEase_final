@@ -34,8 +34,8 @@ export default function CounselorDashboard() {
   try {
     setLoading(true);
 
-    // Retrieve the token from localStorage
-    const token = localStorage.getItem("token"); 
+    // Retrieve the token from sessionStorage
+    const token = sessionStorage.getItem("token"); 
 
     const res = await axios.get(
       `http://localhost:5000/api/analytics/student-mood-clusters?month=${month}&year=${year}`,

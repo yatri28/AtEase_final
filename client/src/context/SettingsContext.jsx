@@ -5,7 +5,7 @@ const SettingsContext = createContext(null);
 
 export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(null);
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   // 🔄 Fetch settings
   useEffect(() => {

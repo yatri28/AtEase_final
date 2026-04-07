@@ -6,7 +6,7 @@ export default function Profile() {
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
 
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   // ✅ FIX: define function BEFORE useEffect
  useEffect(() => {

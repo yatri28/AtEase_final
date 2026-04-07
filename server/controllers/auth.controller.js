@@ -71,6 +71,7 @@ export const signup = async (req, res) => {
         contactNumber: "0000000000",
       });
     }
+    
 
     res.status(201).json({
       message: "Signup successful",

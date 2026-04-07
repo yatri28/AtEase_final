@@ -7,7 +7,7 @@ export default function CounselorProfile() {
   const [profile, setProfile] = useState(null);
   const [editMode, setEditMode] = useState(false);
 
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   useEffect(() => {
     fetchProfile();

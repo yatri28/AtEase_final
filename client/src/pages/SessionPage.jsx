@@ -8,7 +8,7 @@ export default function SessionPage() {
   const [sessionStarted, setSessionStarted] = useState(false);
 
   useEffect(() => {
-    const sessionTime = new Date(localStorage.getItem(`session-${id}`));
+    const sessionTime = new Date(sessionStorage.getItem(`session-${id}`));
 
     const interval = setInterval(() => {
       const now = new Date();

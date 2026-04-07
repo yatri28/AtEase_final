@@ -25,7 +25,7 @@ export default function StudentMessages() {
   const [activeTab, setActiveTab] = useState("inbox");
   const [showOnlyBookmarked, setShowOnlyBookmarked] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -39,7 +39,7 @@ export default function StudentMessages() {
 
   const fetchCounselors = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await axios.get("http://localhost:5000/api/counselors", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -277,7 +277,7 @@ const DataTile = ({ label, value }) => (
 );
 
 const MessageRow = ({ msg, onSelect, onBookmark, onDelete, active }) => {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
   const isSentByMe = msg.senderId?._id === user._id;
   const target = isSentByMe ? msg.receiverId : msg.senderId;
   const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

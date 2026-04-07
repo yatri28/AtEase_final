@@ -24,7 +24,7 @@ export default function CounselorMessages() {
   const [activeTab, setActiveTab] = useState("inbox");
   const [showOnlyBookmarked, setShowOnlyBookmarked] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   const fetchMessages = useCallback(async () => {
     try {

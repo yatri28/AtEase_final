@@ -27,7 +27,7 @@ export default function BookSession() {
   /* ================= FETCH COUNSELORS ================= */
   const fetchCounselors = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await fetch("http://localhost:5000/api/counselors", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -43,7 +43,7 @@ export default function BookSession() {
   /* ================= FETCH STUDENT SESSIONS ================= */
   const fetchSessions = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await fetch("http://localhost:5000/api/sessions/student", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -70,7 +70,7 @@ export default function BookSession() {
 
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const sessionDate = new Date(currentYear, currentMonth, selectedDate);
 
       const res = await fetch("http://localhost:5000/api/sessions/book", {

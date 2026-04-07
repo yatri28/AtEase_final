@@ -12,8 +12,8 @@ export default function AdminNotificationBell() {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef();
 
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+  const token = sessionStorage.getItem("token");
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   // 🔹 Fetch existing notifications
   useEffect(() => {

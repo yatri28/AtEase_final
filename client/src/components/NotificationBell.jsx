@@ -10,13 +10,15 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const audioRef = useRef(null);
-  const token = localStorage.getItem("token");
-  const userId = localStorage.getItem("userId");
+  const token = sessionStorage.getItem("token");
+  const userId = sessionStorage.getItem("userId");
 
   // Unlock sound after first user interaction
   const handleUserInteraction = () => {
-    audioRef.current?.play().catch(() => {});
-  };
+  if (audioRef.current) {
+    audioRef.current.muted = false; // just unlock audio
+  }
+};
 
   useEffect(() => {
     window.addEventListener("click", handleUserInteraction, { once: true });
@@ -142,7 +144,12 @@ export default function NotificationBell() {
         </div>
       )}
 
-      <audio ref={audioRef} src="/notification-sound.wav" preload="auto" />
+      <audio
+      ref={audioRef}
+      src="/notification-sound.wav"
+      preload="auto"
+      muted
+    />
     </div>
   );
 }

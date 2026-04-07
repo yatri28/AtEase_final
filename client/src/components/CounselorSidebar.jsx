@@ -6,7 +6,7 @@ export default function CounselorSidebar() {
   const [user, setUser] = useState(null);
 
 useEffect(() => {
-  const storedUser = localStorage.getItem("user");
+  const storedUser = sessionStorage.getItem("user");
   if (storedUser) {
     const userData = JSON.parse(storedUser);
     // Defer state update to avoid synchronous setState warning
@@ -15,8 +15,8 @@ useEffect(() => {
 }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
     navigate("/");
   };
 

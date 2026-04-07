@@ -6,7 +6,7 @@ export default function CounselorSessions() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(null); // tracks which session is being updated
 
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   useEffect(() => {
     fetchSessions();

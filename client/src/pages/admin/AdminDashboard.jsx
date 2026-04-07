@@ -35,7 +35,7 @@ export default function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const headers = { Authorization: `Bearer ${token}` };
 
       const [statsRes, moodRes, sessionRes] = await Promise.all([
