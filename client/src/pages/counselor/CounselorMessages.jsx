@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import DashboardLayout from "../../layouts/DashboardLayout";
 
@@ -26,16 +26,24 @@ export default function CounselorMessages() {
 
   const user = JSON.parse(sessionStorage.getItem("user"));
 
-  const fetchMessages = useCallback(async () => {
-    try {
-      const res = await axios.get(`http://localhost:5000/api/messages/counselor-inbox/${user._id}`);
-      setMessages(res.data);
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-    }
-  }, [user._id]);
+const fetchMessages = async () => {
+  try {
+    const res = await axios.get(
+      `http://localhost:5000/api/messages/counselor-inbox/${user._id}`
+    );
+    setMessages(res.data);
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+  }
+};
 
-  useEffect(() => { fetchMessages(); }, [fetchMessages]);
+useEffect(() => {
+  const loadMessages = async () => {
+    await fetchMessages();
+  };
+
+  loadMessages();
+}, []);
 
   const toggleBookmark = async (e, id) => {
     e.stopPropagation();

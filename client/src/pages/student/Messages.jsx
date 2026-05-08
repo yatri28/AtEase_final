@@ -51,10 +51,14 @@ export default function StudentMessages() {
     } catch (error) { console.error(error); }
   }, [user.department, user.year]);
 
-  useEffect(() => {
-    fetchMessages();
-    fetchCounselors();
-  }, [fetchMessages, fetchCounselors]);
+useEffect(() => {
+  const loadData = async () => {
+    await fetchMessages();
+    await fetchCounselors();
+  };
+
+  loadData();
+}, [fetchMessages, fetchCounselors]);
 
   const sendMessage = async () => {
     if (!selectedThread || !messageText.trim()) return;

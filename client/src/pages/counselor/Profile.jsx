@@ -9,13 +9,9 @@ export default function CounselorProfile() {
 
   const token = sessionStorage.getItem("token");
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
+  // ✅ FIX: Declare function BEFORE useEffect
   const fetchProfile = async () => {
     try {
-
       const res = await axios.get(
         "http://localhost:5000/api/counselors/profile",
         {
@@ -32,13 +28,21 @@ export default function CounselorProfile() {
     }
   };
 
+  // ✅ useEffect AFTER function
+useEffect(() => {
+  const timer = setTimeout(() => {
+    fetchProfile();
+  }, 0);
+
+  return () => clearTimeout(timer);
+}, []);
+
   const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
   const handleSave = async () => {
     try {
-
       const res = await axios.put(
         "http://localhost:5000/api/counselors/profile",
         profile,
@@ -141,10 +145,8 @@ export default function CounselorProfile() {
 }
 
 function EditableField({ label, name, value, editMode, onChange }) {
-
   return (
     <div>
-
       <p className="text-sm text-gray-500 dark:text-gray-400">
         {label}
       </p>
@@ -162,7 +164,6 @@ function EditableField({ label, name, value, editMode, onChange }) {
           {value}
         </p>
       )}
-
     </div>
   );
 }
